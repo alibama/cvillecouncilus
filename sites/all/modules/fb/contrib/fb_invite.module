@@ -1,0 +1,244 @@
+<?php
+
+/**
+ * @file
+ * Adds the ability to invite facebook friends to use the local Facebook Application.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function fb_invite_menu() {
+
+  // Invite page for the current app.
+  $items['fb_invite'] = array(
+    'title' => 'Invite friends',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('fb_invite_invite_form', 1),
+    'access callback' => 'fb_invite_access_cb',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Menu access callback makes it possible to hide menu items when no local application is configured.
+ */
+function fb_invite_access_cb() {
+  $fb_app = fb_get_app();
+  if ($fb_app) {
+    // There is a current app.
+    return TRUE;
+  }
+  else {
+    // Let administrators understand why access is denied.
+    if (user_access('access administration pages')) {
+      drupal_set_message(t('No Facebook Application configured.  The fb_invite.module needs a <a href="!url">default application</a>.', array(
+            '!url' => url(FB_PATH_ADMIN_CONFIG . '/settings/app'),
+          )), 'error');
+    }
+    return FALSE;
+  }
+}
+
+function fb_invite_request_detail() {
+  if (!empty($_REQUEST['request_ids'])) {
+    $requests = explode(',', $_REQUEST['request_ids']);
+
+    $token = fb_user_token();
+    if (!$token) {
+      $app = fb_get_app();
+      if (!empty($app['data']) && !empty($app['data']['access_token'])) {
+        $token = $app['data']['access_token'];
+      }
+    }
+
+    if ($token) {
+      try {
+        $graph = fb_graph_batch($requests, $token);
+        return $graph;
+      }
+      catch (Exception $e) {
+        fb_log_exception($e, t('Failed to get request detail for %requests.', array('%requests' => $_REQUEST['request_ids'])));
+      }
+    }
+  }
+
+}
+
+
+
+/**
+ * Expose the Facebook Invite markup as a drupal_render element.  This makes it easy to add facebook invite feature to any page or form.
+ */
+function fb_invite_element_info() {
+  return array(
+    'fb_invite' => array(
+      '#input' => FALSE,
+      '#process' => array('fb_invite_element_process'),
+    ),
+  );
+}
+
+/**
+ * Process callback for drupal_render element.
+ */
+function fb_invite_element_process(&$element) {
+  // Defaults
+  $element += array(
+    '#fb_login_button' => array(
+      'text' => t('Connect to invite your Facebook friends'),
+    ),
+
+    // Whether to render multiple friend select.
+    '#fb_invite_mfs' => FALSE,
+
+    // Text to render when javascript disabled.
+    '#noscript' => t('Enable javascript to invite your facebook friends.'),
+
+    '#link_path' => '<front>',
+
+    // @todo make other components of page customizable, i.e. the table headers.
+  );
+
+  // Without an active facebook app, the invite features cannot work.
+  $fb_app = fb_get_app();
+
+  if (!$fb_app) {
+    if (user_access('access administration pages')) {
+      drupal_set_message(t('No Facebook Application configured.  The fb_invite.module needs a <href="!url">default application</a>.', array(
+            '!url' => url(FB_PATH_ADMIN_CONFIG . '/settings/app'),
+          )), 'error');
+    }
+    return drupal_not_found();
+  }
+
+
+  // Require Facebook's javascript API.  We need this to launch a dialog via FB.ui().
+  drupal_add_js(drupal_get_path('module', 'fb') . '/fb_sdk.js', array(
+                  'type' => 'file',
+                  'scope' => 'header',
+                  'group' => JS_LIBRARY,
+                ));
+
+
+  // Add our module's javascript.
+  drupal_add_js(drupal_get_path('module', 'fb_invite') . '/fb_invite.js', array(
+                  'type' => 'file',
+                  'scope' => 'header',
+                  'group' => JS_LIBRARY,
+                ));
+  drupal_add_js(array(
+                  'fb_invite' => array(
+                    'site_name' => variable_get('site_name', 'Drupal'),
+                    'link_url' => url($element['#link_path'], array('absolute' => TRUE)),
+                  ),
+                ), 'setting');
+
+  drupal_add_css(drupal_get_path('module', 'fb_invite') . '/fb_invite.theme.css');
+
+  // Javascript required to render the names.
+  if ($element['#noscript']) {
+    $element['noscript'] = array(
+      '#type' => 'markup',
+      '#markup' => $element['#noscript'],
+      '#prefix' => '<noscript>', '#suffix' => '</noscript>',
+    );
+  }
+
+
+  // Most of the markup that follows is empty, and will be filled out by fb_invite.js.
+  $element['fb_invite'] = array(
+    // fb_connected class will be visible only when user is connected.
+    '#prefix' => '<table id="fb_invite_wrapper" class="fb_connected"><tr>',
+    '#suffix' => '</tr></table>',
+  );
+
+  // Template for markup showing friends not app users.
+  $header = t('Invite Friends');
+
+  $element['fb_invite']['friend_template'] = array(
+    '#prefix' => '<td><table id="fb_invite_friend_wrapper"  style="clear:both;"><th colspan=3>' . $header . '</th><tr id="fb_invite_friend_template" style="display:none;">',
+    '#suffix' => '</tr></table></td>',
+  );
+
+  $element['fb_invite']['friend_template']['fb_invite_img'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<td>', '#suffix' => '</td>',
+    '#markup' => '<img class="fb_invite_img" src=""></img>',
+  );
+  $element['fb_invite']['friend_template']['fb_invite_name'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<td>', '#suffix' => '</td>',
+    '#markup' => '<span class="fb_invite_name"></span>',
+  );
+  $element['fb_invite']['friend_template']['fb_invite_button'] = array(
+    '#prefix' => '<td>', '#suffix' => '</td>',
+    '#type' => 'button',
+    '#value' => t('Invite'),
+    '#attributes' => array('class' => array('fb_invite_button')),
+  );
+
+  // Template for markup showing friends who are users.
+  $header = t('Friends using %app', array(
+                '%site' => variable_get('site_name', 'Drupal'),
+                '%app' => fb_get_name($fb_app),
+              ));
+
+  $element['fb_invite']['user_template'] = array(
+    '#prefix' => '<td><table id="fb_invite_user_wrapper"  style="clear:both;"><th colspan=2>' . $header . '</th><tr id="fb_invite_user_template" style="display:none;">',
+    '#suffix' => '</tr></table></td>',
+  );
+
+  // Javascript will replace !fbu with the users facebook id.
+  $element['fb_invite']['user_template']['fb_invite_img'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<td>', '#suffix' => '</td>',
+    '#markup' => '<img class="fb_invite_img" src=""></img>',
+  );
+
+  $element['fb_invite']['user_template']['fb_invite_name'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<td>', '#suffix' => '</td>',
+    '#markup' => "<span class=\"fb_invite_name\"></span>",
+  );
+
+  if (module_exists('fb_user')) {
+    // Link to local accounts.
+    foreach (element_children($element['fb_invite']['user_template']) as $key) {
+      $markup = $element['fb_invite']['user_template'][$key];
+      // Javascript will provide href to fb_user/fbu
+      $element['fb_invite']['user_template'][$key]['#prefix'] = $markup['#prefix'] . '<a href="" class="fb_invite_user_link">';
+      $element['fb_invite']['user_template'][$key]['#suffix'] = '</a>' . $markup['#suffix'];
+    }
+  }
+
+  if ($element['#fb_invite_mfs']) {
+    $element['fb_invite_mfs'] = array(
+      '#type' => 'button',
+      '#value' => t("Invite several friends"),
+      '#attributes' => array('onclick' => array('FB_Invite.sendInviteMFS(); return false;'), 'class' => array('fb_connected')),
+    );
+  }
+
+  // Show a connect button when user is not logged into facebook.
+  $element['connect'] = array(
+    '#type' => 'markup',
+    '#markup' => theme('fb_login_button', $element['#fb_login_button']),
+    '#prefix' => '<div class="fb_not_connected">', '#suffix' => '</div>',
+  );
+
+  return $element;
+}
+
+/**
+ * This default fb_invite form is simple, because the complexity is in the fb_invite element type.
+ */
+function fb_invite_invite_form($form, &$form_state) {
+  $form['fb_invite'] = array(
+    '#type' => 'fb_invite',
+  );
+
+  return $form;
+}

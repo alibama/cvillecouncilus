@@ -1,0 +1,12 @@
+name = FB Invite Friends
+description = (fb_invite.module) Adds a page where connected users invite friends to the application.
+package = Facebook - contrib
+core = 7.x
+dependencies[] = fb
+
+; Information added by Drupal.org packaging script on 2014-09-08
+version = "7.x-4.x-dev"
+core = "7.x"
+project = "fb"
+datestamp = "1410196842"
+

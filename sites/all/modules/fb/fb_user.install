@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Install file for fb_user.module.
+ *
+ */
+
+/**
+ * Implements hook_schema().
+ *
+ * Define a simple table for mapping local uids to facebook user ids.
+ */
+function fb_user_schema() {
+  $schema['fb_user'] = array(
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'fbu' => array(
+        // http://forum.developers.facebook.net/viewtopic.php?pid=4676
+        'type' => 'int',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+    ),
+    // Assume mappings are one to one.  While theoretically this doesn't have to be the case, it's almost always what is wanted.
+    'primary key' => array('uid'),
+    'unique keys' => array(
+      'fbu' => array('fbu')),
+  );
+
+
+  return $schema;
+}

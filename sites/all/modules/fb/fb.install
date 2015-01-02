@@ -1,0 +1,334 @@
+<?php
+
+function fb_install() {
+  if (defined(JSON_BIGINT_AS_STRING)) {
+    $test = json_decode('[1000000000000]', TRUE, 512, JSON_BIGINT_AS_STRING);
+  }
+  if (!defined(JSON_BIGINT_AS_STRING) || !is_string($test[0])) {
+    variable_set(FB_VAR_USE_JSON_BIGINT, FALSE);
+  }
+}
+
+function fb_schema() {
+  // TODO: add expires to fb_token, and keep track of it.
+  $schema['fb_token'] = array(
+    'description' => 'Access Tokens used for facebook integration.',
+    'fields' => array(
+      'fba' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Facebook\'s application ID',
+      ),
+      'fbu' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Facebook\'s user ID',
+      ),
+      'access_token' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The token itself.',
+      ),
+      'status' => array(
+        'description' => 'Bit flags indicate properties of this token.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the token was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'data' => array( // TODO: change to sdata like fb_application table
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'default' => NULL,
+        'serialize' => TRUE,
+        'description' => 'Additional properties as serialized data.'),
+    ),
+    'primary key' => array('fba', 'fbu'),
+    'unique keys' => array(
+      'access_token' => array('access_token'),
+    ),
+    'indexes' => array(
+      'fba_status' => array('fba', 'status'),
+    ),
+  );
+
+  $schema['fb_application'] = array(
+    'description' => 'Facebook applications.',
+    'fields' => array(
+      'fba' => array(
+        'type' => 'int',
+        'size' => 'big',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Facebook\'s application ID',
+      ),
+      'secret' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'Copied and pasted from facebook admin pages.  Only for locally hosted applications.'
+      ),
+      'status' => array(
+        'description' => 'Bit flags indicate properties of this app.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'namespace' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => '',
+        'description' => 'We learn this from facebook app properties',
+      ),
+      'title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'We learn this from facebook app properties',
+      ),
+      'sdata' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'default' => NULL,
+        'serialize' => TRUE,
+        'description' => 'Additional properties as serialized data.'),
+    ),
+    'unique keys' => array(
+      'namespace' => array('namespace'), // TODO: namespace is not always known, should not be unique.
+    ),
+    'primary key' => array('fba'),
+  );
+
+
+  // Cache for data learned from facebook graph api.
+  $schema['cache_fb'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_fb']['description'] = 'Cache of data learned from facebook\'s graph API.';
+
+  return $schema;
+}
+
+/**
+ * Implements hook_enable().
+ *
+ * Configure applications designed to work with modules/fb.
+ */
+function fb_enable() {
+  if (!variable_get('fb_enable_eg_apps', FALSE)) {
+    // Don't enable starter apps on this site.
+    return;
+  }
+
+  try {
+    require_once(drupal_get_path('module', 'fb') . '/fb.admin.inc');
+    foreach (array(
+
+        // Electric Groups application supports posting to facebook and other features.
+        '138744759520314',
+
+        // BETA version of Electric Groups, for testing features under development.
+        // '102712003139606',
+
+      ) as $fba) {
+      $form_state = array(
+        'values' => array(
+          'fba' => $fba,
+        ),
+      );
+      @drupal_form_submit('fb_admin_application_edit_form', $form_state);
+    }
+  }
+  catch (Exception $e) {
+    fb_log_exception($e, t('Error configuring default Facebook applications.'));
+    drupal_set_message(t('Drupal for Facebook enabled, but did not configure default applications.'), 'warning');
+  }
+}
+
+function fb_uninstall() {
+  // Variables prefixed with double underbar to avoid conflicts with other modules named fb_something.
+  db_query("DELETE FROM {variable} WHERE name LIKE 'fb__%'");
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function fb_requirements($phase) {
+  $t = get_t();
+  $items = array();
+
+  // Disable these checks at install time, because failure then causes more
+  // problems due to module dependencies and Drupal's poor handling of
+  // requirement errors.
+  if ($phase != 'runtime') {
+    return $items;
+  }
+
+  // Default token
+  $status = array(
+    'title' => $t('Drupal for Facebook <a href=!url>Default Token</a>', array(
+                    '!url' => url(FB_PATH_ADMIN_CONFIG . '/settings/token'),
+                  )));
+  if ($token = variable_get(FB_VAR_ADMIN_ACCESS_TOKEN, NULL)) {
+    try {
+      $batch = fb_graph_batch(array('me', 'app'), $token);
+      extract($batch); // $me and $app
+      $args = array(
+        '!me_logo' => '//graph.facebook.com/' . $me['id'] . '/picture?type=square',
+        '!me' => l($me['name'], $me['link']),
+        '!app_logo' => $app['logo_url'],
+        '!app' => l($app['name'], $app['link']),
+      );
+      $status += array(
+        'severity' => REQUIREMENT_OK,
+        'value' => $t('<img src=!me_logo /> <img src=!app_logo /> Token has the privileges of !me, via the application !app.', $args),
+      );
+    }
+    catch (Exception $e) {
+      $status += array(
+        'severity' => REQUIREMENT_ERROR,
+        'value' => $t('Token is not valid.'),
+        'description' => $e->getMessage(),
+      );
+    }
+  }
+  else {
+    $status += array(
+      'severity' => REQUIREMENT_WARNING,
+      'value' => $t('No default token configured'),
+    );
+  }
+  $items[] = $status;
+
+  // Default App
+  $status = array(
+    'title' => $t('Drupal for Facebook <a href=!url>Default Application</a>', array(
+                    '!url' => url(FB_PATH_ADMIN_CONFIG . '/settings/app'),
+                  )),
+  );
+  $args = array();
+  $app_data = variable_get(FB_VAR_DEFAULT_APP, NULL);
+
+  if (!empty($app_data)) {
+    try {
+      $app = fb_graph($app_data['client_id']);
+      foreach ($app as $key => $value) {
+        $args['!' . $key] = $value;
+      }
+      $status += array(
+        'severity' => REQUIREMENT_OK,
+        'value' => l($app['name'], $app['link']),
+        'description' => $t('<img src="!logo_url" />', $args),
+      );
+
+    }
+    catch (Exception $e) {
+      $status += array(
+        'severity' => REQUIREMENT_ERROR,
+        'value' => $t('Failed to get application details from facebook.'),
+        'description' => $e->getMessage(),
+      );
+    }
+  }
+  else {
+    $status += array(
+      'severity' => REQUIREMENT_WARNING,
+      'value' => $t('No default application configured.'),
+    );
+  }
+  $items[] = $status;
+
+  if (!defined('JSON_BIGINT_AS_STRING')) {
+    $items[] = array(
+      'title' => $t('Drupal for Facebook PHP JSON decoding'),
+      'severity' => REQUIREMENT_WARNING,
+      'description' => $t('modules/fb expects JSON_BIGINT_AS_STRING for correct json decoding.'),
+      'value' => phpversion(),
+    );
+  }
+
+  return $items;
+}
+
+
+/**
+ * Install modules/fb 4.x schema.
+ */
+function fb_update_7400() {
+  drupal_install_schema('fb');
+  fb_enable();
+}
+
+/**
+ * Upgrade applications from modules/fb 3.x to 4.x.
+ */
+function fb_update_7401() {
+  require_once(drupal_get_path('module', 'fb') . '/fb.admin.inc');
+  $result = db_query("SELECT * FROM {fb_app}");
+  while ($row = $result->fetchAssoc()) {
+    try {
+      $form_state = array(
+        'values' => array(
+          'fba' => $row['id'],
+          'secret' => $row['secret'],
+          'states' => array(
+            'enabled' => $row['status'],
+          ),
+        ),
+      );
+      drupal_form_submit('fb_admin_application_edit_form', $form_state);
+
+      if (!$form_state['submitted'] || !$form_state['executed']) {
+        // drupal_form_submit did not succeed.
+        $message = t('Drupal for Facebook failed to upgrade application %name (%id).  You must configure it manually.', array(
+                     '%name' => $row['title'],
+                     '%id' => $row['id'],
+                   ));
+        drupal_set_message($message, 'error');
+      }
+    }
+    catch (Exception $e) {
+      $message = t('Drupal for Facebook failed to upgrade application %name (%id).  You must configure it manually.', array(
+                   '%name' => $row['title'],
+                   '%id' => $row['id'],
+                 ));
+      fb_log_exception($e, $message);
+      drupal_set_message($message, 'error');
+    }
+  }
+}
+
+/**
+ * Facebook application namespace is optional.  Allow null in fb_application.namespace database schema.
+ */
+function fb_update_7402() {
+  $schema = fb_schema(); // @todo is there a drupal api for this?
+  // @todo does db_change_field break our index?
+  db_change_field('fb_application', 'namespace', 'namespace', $schema['fb_application']['fields']['namespace']);
+}
+
+/**
+ * Set a default value for modules/fb using native JSON bigint decoding.
+ */
+function fb_update_7403() {
+  if (defined(JSON_BIGINT_AS_STRING)) {
+    $test = json_decode('[1000000000000]', TRUE, 512, JSON_BIGINT_AS_STRING);
+  }
+  if (!defined(JSON_BIGINT_AS_STRING) || !is_string($test[0])) {
+    variable_set(FB_VAR_USE_JSON_BIGINT, FALSE);
+  }
+
+  // The FB_VAR_ALTER_USERNAME varaible name changed.  Preserve old setting.
+  variable_set(FB_VAR_ALTER_USERNAME, variable_get('fb_format_username', FB_ALTER_USERNAME_ALWAYS));
+}

@@ -1,0 +1,19 @@
+name = "Corner"
+description = "Shows configurable image corners on your site."
+core = 7.x
+files[] = tests/corner.test
+stylesheets[all][] = corner.css
+
+; Information added by drupal.org packaging script on 2011-08-31
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "corner"
+datestamp = "1314749604"
+
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "corner"
+datestamp = "1380567690"
+

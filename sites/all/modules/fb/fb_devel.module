@@ -1,0 +1,314 @@
+<?php
+
+/**
+ * @file
+ * Makes development with Drupal for Facebook much easier.  Keep this
+ * module enabled until you're confident your app works perfectly.
+ *
+ * Produces warning messages and log messages
+ * when it detects something is wrong with
+ * your configuration.
+ *
+ * Runs tests for Drupal's status page.
+ *
+ */
+
+define('FB_DEVEL_URL_LINTER', 'http://developers.facebook.com/tools/lint');
+
+function fb_devel_menu() {
+  $base = array(
+    'type' => MENU_NORMAL_ITEM,
+    'access arguments' => array('access devel information'),
+    'menu_name' => 'devel',
+  );
+
+  $items['fb/devel'] = array(
+    'page callback' => 'fb_devel_page',
+    'title' => 'Facebook devel',
+  ) + $base;
+  $items['fb_devel'] = array(
+    'page callback' => 'fb_devel_page',
+    'title' => 'Facebook devel',
+  ) + $base;
+
+  $items['fb/devel/default'] = array(
+    'title' => 'Facebook Devel',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -20,
+  ) + $base;
+
+  $items['fb/devel/app'] = array(
+    'title' => 'Application',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'fb_devel_page_app',
+  ) + $base;
+
+  $items['fb/devel/test'] = array(
+    'title' => 'Test',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'fb_devel_page_test',
+  ) + $base;
+
+  // Special item forwards user to facebook linter for the current page.
+  $items['fb/devel_linter'] = array(
+    'title' => 'Facebook linter',
+    'page callback' => 'drupal_not_found', // Because we alter link, below.
+    'options' => array('alter' => TRUE),
+  ) + $base;
+
+  // Previous version of modules/fb used fb_cb as a URL prefix.  This version does not support that convention.  This menu item will help administrators find that problem.
+  $items['fb_cb'] = array(
+    'title' => 'Bad Facebook Callback URL',
+    'page callback' => 'fb_devel_cb_help',
+    'access callback' => TRUE, // Make visible in canvas pages.
+  ) + $base;
+
+
+  return $items;
+}
+
+// Trick learned from devel.module, to make link to linter for the current page.
+function fb_devel_translated_menu_link_alter(&$item) {
+  if ($item['link_path'] == 'fb/devel_linter' ||
+      $item['link_path'] == FB_DEVEL_URL_LINTER) {
+    //dpm($item, __FUNCTION__);
+    $item['href'] = FB_DEVEL_URL_LINTER; // href matters. link_path and router path do not.
+    $item['localized_options']['query'] = array(
+      'url' => url(current_path(), array('absolute' => TRUE)),
+    );
+  }
+}
+
+/**
+ * Implements hook_fb().
+ *
+ * Log hook invocations for debugging.
+ */
+function fb_devel_fb($op, $data, &$return) {
+  $args = array(
+    '%op' => $op,
+    '!data' => '<pre>' . print_r($data, 1) . '</pre>',
+    '!request' => '<pre>' . print_r($_REQUEST, 1) . '</pre>',
+  );
+  if (fb_verbose() == 'extreme') {
+    watchdog(__FUNCTION__, 'hook_fb(%op) invoked with data: !data, and passed !request', $args);
+  }
+}
+
+
+/**
+ * Provides a page with useful debug info.
+ *
+ */
+function fb_devel_page($id = NULL) {
+  try {
+    $markup = array(
+      '#type' => 'markup',
+      '#prefix' => '<p>', '#suffix' => '</p>',
+    );
+
+    $app = fb_get_app();
+
+    if (!empty($_REQUEST['signed_request'])) {
+      $sr = fb_parse_signed_request($_REQUEST['signed_request'],
+                                    !empty($app['secret']) ? $app['secret'] : NULL);
+      $output[] = $markup + array(
+        '#markup' => 'signed request is ' . dprint_r($sr, 1),
+      );
+    }
+
+    $graph_params = array();
+    if (!empty($app['data']) && !empty($app['data']['access_token'])) {
+      $graph_params['access_token'] = $app['data']['access_token'];
+    }
+    if ($id) {
+      try {
+        $graph = fb_graph($id, $graph_params);
+        $output[$id] = $markup + array(
+          '#markup' => 'fb_graph(' . $id . '):' . dprint_r($graph, TRUE),
+        );
+      }
+      catch (Exception $e) {
+        $output[$id] = $markup + array(
+          '#markup' => 'fb_graph(' . $id . ') failed:' . dprint_r($e, TRUE),
+        );
+      }
+    }
+
+    if (!empty($app['secret'])) {
+      $app['secret'] = t('<hidden>');
+    }
+    if (!empty($app['data']) && !empty($app['data']['access_token'])) {
+      $app['sdata'] = t('<hidden>');
+      $app['data']['access_token'] = t('<hidden>');
+    }
+
+    $output[] = $markup + array(
+      '#markup' => 'fb_app() = ' . dprint_r($app, 1),
+    );
+
+    $user_token = fb_user_token();
+    $output['fb_user_token'] = $markup + array(
+      '#markup' => 'fb_user_token() = ' . fb_user_token(),
+    );
+    $output['fb_server_auth_url'] = array(
+      '#markup' => 'Server-side auth test ' . l('fb_server_auth_url()', fb_server_auth_url()),
+    ) + $markup;
+    $output['fb_client_auth_url'] = array(
+      '#markup' => 'Client-side auth test ' . l('fb_client_auth_url()', fb_client_auth_url()),
+    ) + $markup;
+
+    if ($user_token) {
+      $output['graph'] = $markup + array(
+        '#markup' => 'fb_graph_batch() with user token:' . dprint_r(fb_graph_batch(array('me', 'app'), fb_user_token()), TRUE),
+      );
+    }
+
+  }
+  catch (exception $e) {
+    $output[] = $markup + array(
+      '#markup' => 'Exception: ' . $e,
+    );
+    drupal_set_message($e->getMessage(), 'error');
+  }
+
+  $output[] = $markup + array(
+    '#markup' => '$_REQUEST = ' . dprint_r($_REQUEST, 1),
+  );
+
+  // Show session data, but not messages.
+  $session = $_SESSION;
+  unset($session['messages']);
+  $output[] = $markup + array(
+    '#markup' => '$_SESSION = ' . dprint_r($session, 1),
+  );
+
+  return $output;
+}
+
+function fb_devel_page_app() {
+  dpm(func_get_args(), __FUNCTION__);
+  $markup = array(
+    '#type' => 'markup',
+    '#prefix' => '<p>', '#suffix' => '</p>',
+  );
+  $app = fb_get_app();
+
+  try {
+    $adata = fb_graph($app['client_id']);
+    $output[] = array(
+      '#markup' => dprint_r($adata, 1),
+    ) + $markup;
+
+  }
+  catch (exception $e) {
+    fb_log_exception($e);
+  }
+
+  return $output;
+
+}
+
+function fb_devel_page_test() {
+  $markup = array(
+    '#type' => 'markup',
+    '#prefix' => '<p>', '#suffix' => '</p>',
+  );
+  $app = fb_get_app();
+
+  try {
+    $adata = fb_graph($app['fba']);
+    $output[] = array(
+      '#markup' => dprint_r($adata, 1),
+    ) + $markup;
+
+    $url = "https://www.facebook.com/dialog/oauth?client_id={$app['fba']}&redirect_uri=https://www.facebook.com/connect/login_success.html&response_type=token";
+
+    $output[] = array(
+      '#markup' => " test $url:<a href='$url'>$url</a>",
+    ) + $markup;
+
+    $url = fb_client_auth_url();
+    /* Doesn't work, X-Frame-Options
+    $output[] = array(
+      '#markup' => "iframe test $url:<br/><iframe id=fb_devel_test_canvas src=\"" . $url . '"></iframe>',
+    );
+    */
+
+    //$url = 'http://apps.facebook.com/' . $adata['namespace'] . '/test123';
+
+    $output['script'] = array(
+      '#markup' => "Script test $url:<br/><div id=script_test></div>
+<script type=text/javascript>
+var test_url = '$url';
+//debugger;
+jQuery.ajax({
+  url: test_url,
+  dataType: 'jsonp',
+  xhrFields: {
+      withCredentials: true
+   },
+  dataFilter: function(data, type) {
+    debugger;
+  },
+  converters: {'* text': window.String, 'text html': true, 'text json': true, 'text xml': jQuery.parseXML},
+  complete: function(jqXHR, settings) {
+        var headers = jqXHR.getAllResponseHeaders(); // debug info.
+        var responseText = jqXHR.responseText; // debug info.
+      debugger;
+  },
+  beforeSend: function ( xhr ) {
+    //debugger;
+  },
+  success: function(data, textStatus, jqXHR) {
+    debugger;
+  },
+  error: function(jqXHR, textStatus, errorThrown) {
+        var headers = jqXHR.getAllResponseHeaders(); // debug info.
+        var responseText = jqXHR.responseText; // debug info.
+    debugger;
+  }
+});
+</script>
+",
+    ) + $markup;
+
+    // Disable because it doesn't work!
+    unset($output['script']);
+  }
+  catch (exception $e) {
+    fb_log_exception($e);
+  }
+
+
+
+  return $output;
+
+}
+
+
+//// Upgrade
+/**
+ * These are functions from fb-3.x that no longer exist in fb-4.x.  Rather
+ * than let php fatal error, we define them here to warn that third-party
+ * modules are not upgraded.
+ */
+
+function fb_facebook_user() {
+  throw new Exception(t('!function() called.  This function is part of modules/fb 3.x, and is not defined in modules/fb 4.x.  Your code that relies on modules/fb 3.x needs to be upgraded.', array('!function' => __FUNCTION__)));
+}
+
+
+/**
+ * Drupal menu callback.
+ *
+ * Let administrators know when their app is configured with old-style path prefix.
+ */
+function fb_devel_cb_help() {
+  //@todo more verbose message with instructions.
+  $output[] = array(
+    '#markup' => t('Your Facbook canvas page (or page tab) is configured for the previous version of <em>Drupal for Facebook (modules/fb)</em>.'),
+  );
+
+  return $output;
+}

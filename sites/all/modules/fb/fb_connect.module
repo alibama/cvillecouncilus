@@ -1,0 +1,306 @@
+<?php
+
+/**
+ * Facebook Connect
+ */
+
+define('FB_CONNECT_PATH_ADMIN', FB_PATH_ADMIN_CONFIG . '/fb_connect');
+
+/**
+ * Implements hook_menu().
+ */
+function fb_connect_menu() {
+  $items = array();
+
+  // Use Drupal's menu alter trick to put a connect button on the menu.
+  $items['fb/connect'] = array(
+    'title' => 'Facebook Connect',
+    'page callback' => 'drupal_not_found', // Because we alter link, below.
+    //'menu_name' => 'fb_connect',
+    'options' => array(
+      'alter' => TRUE,
+      'html' => TRUE,
+      'attributes' => array('class' => array('fb')),
+    ),
+    'access callback' => TRUE, // Javascript will hide connect button from connected users.
+  );
+
+  // Administration
+
+  $items[FB_CONNECT_PATH_ADMIN] = array(
+    'title' => 'Connect',
+    'description' => 'Site-wide connection to Facebook.com.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('fb_connect_admin_form'),
+    'access arguments' => array(FB_PERM_ADMINISTER),
+    'file' => 'fb_connect.admin.inc',
+    'file path' => drupal_get_path('module', 'fb_connect'),
+  );
+
+
+
+  return $items;
+}
+
+/**
+ * Implements hook_translated_menu_link_alter().
+ *
+ * Customize the link on each page, to return the user to this page after connecting.
+ * Experimental use of '</a>...<a>' because drupal will surround our title with <a>...</a> and for our markup we don't want that.
+ */
+function fb_connect_translated_menu_link_alter(&$item) {
+  if ($item['link_path'] == 'fb/connect') {
+    if (arg(0) == 'admin' && arg(2) == 'menu') {
+      // Do not alter on admin menu pages so that admins can modify menu links.
+    }
+    else {
+      // This was an attempt to custom theme menu item.  It doesn't work when menu_navigation_links() is called, so using the </a>...</a> hack below instead.
+      //$item['menu_name'] = 'fb_connect';  // $element['#theme'] = 'menu_link__' . strtr($data['link']['menu_name'], '-', '_');
+
+      /* This was an attempt to let javascript show/hide the proper link based on whether the user is currently connected.  The link generated this was does not look very good alongside other drupal menu links.
+
+      $item['title'] = '</a>' . theme('fb_markup', array(
+                                        'options' => array('wrapper' => 'span'),
+                                        'not_connected' => theme('fb_login_button', array()),
+                                        'connected' => '<span class="fb_replace"><!---!name---></span>',
+                                      )) . '<a>';
+      */
+
+      $img_file = drupal_get_path('module', 'fb') . '/images/f_logo.png';
+      $img_src = url($img_file, array(
+                       'fb_url_alter' => FALSE,
+                     ));
+
+      // Replace the menu item link with a link customized for the current page.
+      if ($token = fb_user_token()) {
+        try {
+          $me = fb_graph('me', $token);
+
+          // user is already connected.
+          $item['href'] = $me['link'];
+          $item['title'] = t('<img class="fb_logo" src="!img_src" />&nbsp;%name', array(
+                               '%name' => $me['name'],
+                               '!img_src' => $img_src,
+                             ));
+        }
+        catch (Exception $e) {
+          // Give user another chance to connect.
+          $item['href'] = fb_client_auth_url();
+          $item['title'] = t('<img class="fb_logo" src="!img_src" />&nbsp;!title', array(
+                               '!title' => $item['title'],
+                               '!img_src' => $img_src,
+                             ));
+        }
+      }
+      else {
+        $item['href'] = fb_client_auth_url();
+        if (empty($item['href'])) {
+          // Facebook Connect is not configured.
+          if (user_access(FB_PERM_ADMINISTER)) {
+            $item['title'] = t('<em>Facebook Connect</em>');
+            $item['href'] = FB_CONNECT_PATH_ADMIN;
+          }
+          else {
+            $item['hidden'] = TRUE;
+          }
+        }
+        else {
+          $item['title'] = t('<img class="fb_logo" src="!img_src" />&nbsp;!title', array(
+                             '!title' => $item['title'],
+                             '!img_src' => $img_src,
+                           ));
+        }
+      }
+    }
+    $item['localized_options']['attributes']['class'][] = 'fb';
+  }
+}
+
+
+//// Facebook Connect login/status block.
+
+/**
+ * Implements hook_block_info().
+ */
+function fb_connect_block_info() {
+  $items = array();
+
+  // Login to default/primary app.
+  $items['login_primary'] = array(
+    'info' => t('Facebook Connect Login'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function fb_connect_block_configure($delta = '') {
+  $orig_defaults = _fb_connect_block_login_defaults();
+  $defaults = variable_get('fb_connect_block_' . $delta, $orig_defaults);
+  $form['config'] = array('#tree' => TRUE);
+
+  // Settings for each user status that we can detect.
+  foreach (array('anon_not_connected', 'user_not_connected', 'connected') as $key) {
+    $form['config'][$key] = array(
+      '#type' => 'fieldset',
+      // title and description below
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+    $form['config'][$key]['title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Default title'),
+      '#default_value' => $defaults[$key]['title'],
+    );
+    $textformat = isset($defaults[$key]['body']['format']) ? $defaults[$key]['body']['format'] : 'full_html';
+    $form['config'][$key]['body'] = array(
+      '#type' => 'text_format',
+      '#title' => t('Body'),
+      '#base_type' => 'textarea',
+      '#format' => $textformat,
+      '#default_value' => $defaults[$key]['body']['value'],
+    );
+  }
+
+  $form['config'][] = array(
+    '#markup' => "<p><strong>Be sure to select a format that allows XFBML tags!</strong> (That is, use <em>Full HTML</em> or <em>PHP code</em> (PHP Filter module must be enabled), rather than  <em>Filtered HTML</em>.)</p>",
+    '#weight' => -10,
+  );
+  $form['config']['anon_not_connected']['#title'] = t('Anonymous user, not connected');
+  $form['config']['anon_not_connected']['#description'] = t('Settings when local user is Anonymous, and not connected to Facebook.  Typically a new account will be created when the user clicks the connect button.');
+  $form['config']['anon_not_connected']['body']['#description'] = t('Suggested markup: %default .', array('%default' => $orig_defaults['anon_not_connected']['body']['value']));
+
+  $form['config']['user_not_connected']['#title'] = t('Registered user, not connected');
+  $form['config']['user_not_connected']['#description'] = t('Settings when local user is registered, and not connected to Facebook.  Typically the facebook id will be linked to the local id after the user clicks the connect button.');
+  $form['config']['user_not_connected']['body']['#description'] = t('Suggested markup: %default .', array('%default' => $orig_defaults['user_not_connected']['body']['value']));
+  $form['config']['connected']['#title'] = t('Connected user');
+  $form['config']['connected']['#description'] = t('Settings when local user is connected to Facebook.  Use <a target="_blank" href="!xfbml_url">XFBML</a> such as &lt;fb:name uid=loggedinuser&gt;&lt;/fb:name&gt; or &lt;fb:profile-pic uid=loggedinuser&gt;&lt;/fb:profile-pic&gt; only if you are using facebook\'s javascript SDK.', array('!xfbml_url' => 'http://wiki.developers.facebook.com/index.php/XFBML'));
+  $form['config']['connected']['body']['#description'] = t('Note that <strong>!fbu</strong> will be replaced with the user\'s facebook id.<br/>Suggestion: %default .', array('%default' => $orig_defaults['connected']['body']['value']));
+
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function fb_connect_block_save($delta = '', $edit = array()) {
+  variable_set('fb_connect_block_' . $delta, $edit['config']);
+}
+
+function fb_connect_block_view($delta = '') {
+  // Hide block on tabs, where the $fbu is actually the page, not the user.
+  //if (!fb_is_tab()) {
+  if (TRUE) { // XXX
+    if (strpos($delta, 'login_') === 0) {
+      // Login block
+      $fba = substr($delta, 6); // length of 'login_'
+
+      if ($fba == 'primary') {
+        $app = fb_get_app();
+      }
+      else {
+        // TODO: load details for client_id.
+        //dpm(func_get_args(), __FUNCTION__);
+        return NULL;
+      }
+
+      if (!empty($app)) {
+        if (!empty($_SESSION['fb'][$app['fba']])) {
+          $sdata = $_SESSION['fb'][$app['fba']];
+        }
+
+        /*
+        $token = fb_user_token($app);
+        dpm($token, __FUNCTION__);
+        if ($token) {
+          try {
+            // debug. should not be needed.
+            $me = fb_graph('me', $token);
+          }
+          catch (Exception $e) {
+            fb_log_exception($e, __FUNCTION__);
+          }
+        }
+        */
+
+        $defaults = variable_get('fb_connect_block_' . $delta, _fb_connect_block_login_defaults());
+
+        // Render both connected and not-connected markup to the page.  Javascript will show or hide it.
+        $subject_connected = $defaults['connected']['title'];
+        $content_connected = $defaults['connected']['body']['value'];
+
+        if (user_is_anonymous()) {
+          $subject = $defaults['anon_not_connected']['title'];
+          $content = $defaults['anon_not_connected']['body']['value'];
+          $format = $defaults['anon_not_connected']['body']['format'];
+        }
+        else {
+          $subject = $defaults['user_not_connected']['title'];
+          $content = $defaults['user_not_connected']['body']['value'];
+          $format = $defaults['user_not_connected']['body']['format'];
+        }
+
+        // substitute perms
+        $perms = array();
+        drupal_alter('fb_required_perms', $perms);
+        $content = str_replace('!perms', implode(',', $perms), $content);
+
+        // Filter output according to settings in block configuration
+        $subject = check_plain($subject);
+        if ($format) {
+          $content = check_markup($content, $format, '', FALSE);
+        }
+        $subject_connected = check_plain($subject_connected);
+        if ($format_connected = $defaults['connected']['body']['format']) {
+          $content_connected = check_markup($content_connected, $format_connected, FALSE);
+        }
+
+        $block = array(
+          // Theme fb_markup uses javascript to show/hide the right markup.
+          'subject' => theme('fb_markup', array(
+                               'not_connected' => $subject,
+                               'connected' => $subject_connected,
+                             )),
+          'content' => theme('fb_markup', array(
+                               'not_connected' => $content,
+                               'connected' => $content_connected,
+                             )),
+        );
+
+        return $block;
+      }
+    }
+  }
+}
+
+/**
+ * Default markup for our login block.
+ */
+function _fb_connect_block_login_defaults() {
+  return array('anon_not_connected' => array(
+                 'title' => t('Facebook Connect'),
+                 'body' => array(
+                   'value' => theme('fb_login_button'),
+                   'format' => NULL,
+                 ),
+               ),
+               'user_not_connected' => array(
+                 'title' => t('Facebook Connect'),
+                 'body' => array(
+                   'value' => theme('fb_login_button'),
+                   'format' => NULL,
+                 ),
+               ),
+               'connected' => array(
+                 'title' => t('Facebook Connect'),
+                 // This somewhat ugly markup will be replaced in fb.js with user's name and picture.
+                 'body' => array(
+                   'value' => '<div class="fb_replace"><!--- Connected as !name. &nbsp;</div><img src=//graph.facebook.com/!fbu/picture /> ---> </div>',
+                   'format' => NULL,
+                 ),
+                 //'body' => array('value' => '<fb:profile-pic uid=loggedinuser linked="false" facebook-logo="true"></fb:profile-pic><!--<fb:login-button autologoutlink=true></fb:login-button>-->', 'format' => NULL), // fb:profile-pic is deprecated! https://developers.facebook.com/docs/reference/fbml/profile-pic/
+               ),
+  );
+}

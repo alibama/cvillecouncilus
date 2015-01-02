@@ -1,0 +1,123 @@
+<?php
+
+define('FB_CANVAS_VAR_ADD_JS', 'fb__canvas_add_js');
+define('FB_CANVAS_VAR_PROCESS_PAGE', 'fb__canvas_process_page');
+define('FB_CANVAS_VAR_PROCESS_ABSOLUTE', 'fb__canvas_process_absolute_links');
+
+function fb_canvas_app() {
+  $fb_app = &drupal_static('fb_canvas_app');
+  if ($fb_app === NULL) {
+    $fb_settings = &drupal_static('fb_settings');
+    if (!empty($fb_settings['fb__canvas'])) {
+      $app_id = $fb_settings['fb__canvas'];
+      $fb_app = fb_application_load($app_id);
+    }
+    else {
+      $fb_app = FALSE;
+    }
+  }
+  return $fb_app;
+}
+
+/**
+ * Implements hook_fb_app_alter().
+ *
+ * fb_get_app() is looking for an application.  Either an app specific to
+ * a certain task (if $variable is set), or the "current app".
+ *
+ * If the current app is requested on a canvas page, this module is
+ * responsible for returning the app details.
+ */
+function fb_canvas_fb_app_alter(&$app, &$variable) {
+  if (!$variable) {
+    if ($fb_app = fb_canvas_app()) {
+      $app = $fb_app;
+    }
+  }
+}
+
+/**
+ * Implements hook_custom_theme().
+ */
+function fb_canvas_custom_theme() {
+  if ($fb_app = fb_canvas_app()) {
+    // Include our javascript.
+    drupal_add_js(array(
+                    'fb_canvas' => array(
+                      'uid' => $GLOBALS['user']->uid,
+                      'namespace' => $fb_app['namespace'],
+                      'client_id' => $fb_app['client_id'],
+                    ),
+                  ), 'setting');
+    drupal_add_js(drupal_get_path('module', 'fb_canvas') . '/fb_canvas.js');
+
+    if (variable_get(FB_CANVAS_VAR_ADD_JS, TRUE)) {
+      // Initialize Facebook JS API on canvas pages.
+      fb_require_js();
+    }
+  }
+}
+
+// Not used, was experimenting possibility of avoiding url alters.
+function fb_canvas_menu_get_item_alter(&$router_item, &$path, $original_map) {
+  //dpm(func_get_args(), __FUNCTION__);
+}
+
+// Not used, was exploring possible replacement for fb_process.
+function fb_canvas_theme_registry_alter(&$items) {
+  //dpm($items['page'], __FUNCTION__);
+  $items['page']['process functions'][] = 'fb_canvas_process_page';
+}
+
+function fb_canvas_process_page(&$vars, $hook) {
+  //dpm(func_get_args(), __FUNCTION__);
+}
+
+/**
+ * Implements hook_page_alter().
+ *
+ * Canvas pages usually need extra processing to clean up links.
+ */
+function fb_canvas_page_alter(&$page) {
+  if (fb_canvas_app() && variable_get(FB_CANVAS_VAR_PROCESS_PAGE, TRUE)) {
+    if (!isset($page['#post_render'])) {
+      $page['#post_render'] = array();
+    }
+    $page['#post_render'][] = 'fb_canvas_post_render_page';
+  }
+}
+
+
+function fb_canvas_post_render_page($page, $children) {
+  include drupal_get_path('module', 'fb') . '/fb.process.inc';
+  $fb_app = fb_canvas_app();
+  $page = fb_process($page, array(
+                       'add_target' => '_top',
+                       'absolute_links' => variable_get(FB_CANVAS_VAR_PROCESS_ABSOLUTE, TRUE),
+                       'to_canvas' => $fb_app['namespace'],
+                     ));
+  return $page;
+}
+
+function fb_canvas_url_outbound_alter(&$path, &$options, $original_path) {
+  // Defaults.
+  $options += array(
+    'fb_canvas' => FALSE,
+    'fb_url_alter' => TRUE,
+  );
+
+  if ($options['fb_canvas'] && $options['fb_url_alter']) {
+    if (is_string($options['fb_canvas'])) {
+      $namespace = $options['fb_canvas'];
+    }
+    else {
+      $fb_app = fb_get_app();
+      $namespace = $fb_app['namespace'];
+    }
+
+    $options['absolute'] = TRUE;
+    // $options['external'] = TRUE; <-- no, don't do this.
+    $options['base_url'] = "//apps.facebook.com/{$namespace}";
+  }
+
+}

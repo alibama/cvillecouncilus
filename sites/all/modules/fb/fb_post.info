@@ -1,0 +1,17 @@
+name = Post to Facebook
+description = Publish content to Facebook, with links back to this site.
+package = Facebook
+configure = admin/config/fb/fb_post
+core = 7.x
+
+dependencies[] = fb
+
+files[] = fb_post.module
+
+
+; Information added by Drupal.org packaging script on 2014-09-08
+version = "7.x-4.x-dev"
+core = "7.x"
+project = "fb"
+datestamp = "1410196842"
+

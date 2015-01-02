@@ -1,0 +1,16 @@
+name = Facebook Canvas Pages
+description = For apps on facebook.com.
+package = Facebook
+configure = admin/config/fb/fb_canvas
+core = 7.x
+
+dependencies[] = fb
+
+files[] = fb_canvas.module
+
+; Information added by Drupal.org packaging script on 2014-09-08
+version = "7.x-4.x-dev"
+core = "7.x"
+project = "fb"
+datestamp = "1410196842"
+

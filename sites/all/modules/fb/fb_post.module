@@ -1,0 +1,738 @@
+<?php
+
+// Variables (use fb__post_ prefix)
+define('FB_POST_VAR_ADMIN_TOKEN', 'fb__post_token');
+
+// Permissions
+define('FB_POST_PERM_POST_NODE', 'fb_post_node');
+define('FB_POST_PERM_OVERRIDE_NODE', 'fb_post_override_node');
+define('FB_POST_PERM_OVERRIDE_COMMENT', 'fb_post_override_comment');
+
+/**
+ * Implements hook_permission().
+ */
+function fb_post_permission() {
+  return array(
+    FB_POST_PERM_POST_NODE => array(
+      'title' => t('Post content to facebook using default settings.'),
+    ),
+    FB_POST_PERM_OVERRIDE_NODE => array(
+      'title' => t('Override default settings when posting content.'),
+    ),
+    FB_POST_PERM_OVERRIDE_COMMENT => array(
+      'title' => t('Override default settings when posting comments.'),
+    ),
+  );
+}
+
+
+define('FB_POST_PATH_ADMIN', FB_PATH_ADMIN_CONFIG . '/fb_post');
+
+/**
+ * Implements hook_menu().
+ */
+function fb_post_menu() {
+  $items = array();
+
+  // Administration
+
+  $items[FB_POST_PATH_ADMIN] = array(
+    'title' => 'Post to Facebook',
+    'description' => 'Site-wide connection to Facebook.com.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('fb_post_admin_form'),
+    'access arguments' => array(FB_PERM_ADMINISTER),
+    'file' => 'fb_post.admin.inc',
+    'file path' => drupal_get_path('module', 'fb_post'),
+  );
+
+  // Per-node administration.
+  $items['node/%node/fb'] = array(
+    'title' => 'Facebook',
+    'page callback' => 'fb_post_entity_page',
+    'page arguments' => array('node', 1),
+    'access arguments' => array(FB_PERM_ADMINISTER),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,  // More than basic tabs, less than devel (devel is 100)
+  );
+
+
+  return $items;
+}
+
+function fb_post_entity_page($type, $entity) {
+
+  $token = fb_get_admin_token();
+
+  if (!isset($entity->fb_post_graph) || !count($entity->fb_post_graph)) {
+    $output['fb_post_status'] = array(
+      '#markup' => t('Not posted to facebook.'),
+      '#prefix' => '<p>', '#suffix' => '</p>',
+    );
+  }
+  else {
+    $output['fb_post_status'] = array(
+      '#markup' => t('Posted to facebook %count times.', array('%count' => count($entity->fb_post_graph))),
+      '#prefix' => '<p>', '#suffix' => '</p>',
+    );
+    /* How to generate this link????
+    foreach ($entity->fb_post_graph as $row) {
+      $url = "http://graph.facebook.com/" . $row->graph_id . '/link';
+      $output['fb_post_posts'][$row->graph_id] = array(
+        // @TODO - better markup.
+        '#markup' => l($row->graph_id, $url, array(
+                         //'query' => array('access_token' => $token))),
+        '#prefix' => '<p>', '#suffix' => '</p>',
+      );
+    }
+    */
+  }
+
+  // Provide a post to facebook link.
+  if ($user_token = fb_user_token()) {
+    $this_page = url("node/$node->nid", array('absolute' => TRUE));
+    $url = url("http://www.facebook.com/dialog/feed", array(
+                 'external' => TRUE,
+                 'query' => array(
+                   'display' => 'popup',
+                   'app_id' => $app['client_id'],
+                   'redirect_uri' => $this_page,
+                   'access_token' => $user_token,
+                 ),
+               ));
+    $output['fb_post_link'] = array(
+      '#markup' => t('<a href="!url">Post to Facebook via your facebook account</a>.', array(
+                       '!url' => $url,
+                     )),
+      '#prefix' => '<p>', '#suffix' => '</p>',
+    );
+    // @TODO - if user has posted, save to fb_post_graph table!
+  }
+
+  // Allow post using site-wide settings.
+  $output['fb_post_form'] = drupal_get_form('fb_post_entity_publish_form', $entity);
+
+  return $output;
+}
+
+function fb_post_entity_load($entities, $type) {
+
+  foreach ($entities as $id => $entity) {
+    $entity->fb_post_graph = db_select('fb_post_graph')
+      ->fields('fb_post_graph', array('graph_id', 'actor_id'))
+      ->condition('entity_type', $type)
+      ->condition('entity_id', $id)
+      ->execute()
+      ->fetchAll();
+  }
+}
+
+
+
+
+function fb_post_publish_node($options, $node) {
+  try {
+    $node_url = url("node/$node->nid", array('absolute' => TRUE));
+
+    if (!empty($options['account_id'])) {
+      $token = $options['page_tokens'][$options['account_id']];
+    }
+    else {
+      $token = $options['page_tokens'][$options['feed_id']];
+    }
+    //dpm(__FUNCTION__ . "using $token.  User token is " . fb_user_token());
+    //dpm($options, __FUNCTION__);
+    $params = array(
+      'access_token' => $token,
+      'message' => $options['message'],
+      'link' => $node_url,
+      'name' => $node->title,
+      'description' => $node->title,
+      'actions' => json_encode(array(
+                                 'name' => 'View More',
+                                 'link' => $node_url,
+                               )),
+    );
+    // @TODO invoke drupal_alter()
+
+    if (!$params['access_token']) {
+      drupal_set_message(t('Post to Facebook failed.  No authorization.'), 'error');
+      return;
+    }
+
+    // A common problem is "#100 link URL is not properly formatted"
+    // @TODO Not sure what the test should be...
+    if (strpos($params['link'], "http://local") === 0) {
+      unset($params['link']);
+    }
+
+    $result = fb_graph_post($options['feed_id'] . '/feed', $params);
+
+    if ($id = $result['id']) {
+      // Note that the id returned by facebook is not a normal one that can be found at graph.facebook.com/$id.
+
+      db_insert('fb_post_graph')->fields(array(
+                                           'entity_id' => $node->nid,
+                                           'entity_type' =>'node',
+                                           'graph_id' => $id,
+                                         ))->execute();
+      $msg = "Posted <a href=!node_url>%title</a> to <a href=!feed_url>facebook</a>.";
+      $args = array(
+        '!node_url' => $node_url,
+        '%title' => $node->title,
+        '!feed_url' => url("http://facebook.com/profile.php", array(
+                             'external' => TRUE,
+                             'query' => array(
+                               'id' => $options['feed_id'],
+                               'sk' => 'wall',
+                             ),
+                           )),
+        // This may work for page posts, does not work for profile posts.  :(
+        '!post_url' => url("//www.facebook.com/permalink.php", array(
+                             'external' => TRUE,
+                             'query' => array(
+                               'story_fbid' => $id,
+                               'id' => $options['feed_id'],
+                             ),
+                           )),
+      );
+      watchdog('fb', $msg, $args);
+      drupal_set_message(t($msg, $args));
+    }
+    return $result;
+  }
+  catch (Exception $e) {
+    $msg1 = "Could not post <a href=!node_url>%title</a> to <a href=!feed_url>facebook</a>.  You might avoid this error in the future by <a href=!auth_url>granting additional permissions</a>.";
+    $msg2 = "Post <a href=!node_url>%title</a> to <a href=!feed_url>facebook</a> failed with this error:  %error";
+    $args = array(
+      '%error' => $e->getMessage(),
+      '!node_url' => $node_url,
+      '%title' => $node->title,
+      '!auth_url' => fb_client_auth_url(array('scope' => 'publish_actions,manage_pages')),
+      // How to properly generate facebook url???
+      '!feed_url' => url("http://facebook.com/profile.php", array(
+                           'external' => TRUE,
+                           'query' => array(
+                             'id' => $options['feed_id'],
+                             'sk' => 'wall',
+                           ),
+                         )),
+    );
+    watchdog('fb', $msg2, $args, WATCHDOG_ERROR);
+    drupal_set_message(t($msg1, $args), 'error');
+    drupal_set_message(t($msg2, $args), 'error');
+  }
+}
+
+
+
+/**
+ * Implements hook_node_insert().
+ */
+function fb_post_node_insert($node) {
+  if (isset($node->fb_post_settings) && $node->fb_post_settings['status']) {
+    // Using site-wide settings.
+    $result = fb_post_publish_node($node->fb_post_settings, $node);
+  }
+  if (isset($node->fb_post_user_settings) && $node->fb_post_user_settings['status']) {
+    // Using user specific settings.
+    $result = fb_post_publish_node($node->fb_post_user_settings, $node);
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function fb_post_node_update($node) {
+  if (isset($node->fb_post_settings) && $node->fb_post_settings['status']) {
+    // Using site-wide settings.
+    $result = fb_post_publish_node($node->fb_post_settings, $node);
+  }
+  if (isset($node->fb_post_user_settings) && $node->fb_post_user_settings['status']) {
+    // Using user specific settings.
+    $result = fb_post_publish_node($node->fb_post_user_settings, $node);
+  }
+}
+
+
+function fb_post_form_alter(&$form, $form_state, $form_id) {
+  //dpm($form, $form_id); // debug
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function fb_post_form_node_type_form_alter(&$form, $form_state) {
+
+  if (isset($form['type'])) {
+    $fake_node = new stdClass();
+    $fake_node->type = $form['#node_type']->type;
+
+    $form['fb_post_settings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Facebook Post'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#group' => 'additional_settings',
+      '#attributes' => array(
+        'class' => array('fb-node-type-settings-form'),
+      ),
+      '#attached' => array(
+        //'js' => array(drupal_get_path('module', 'comment') . '/comment-node-form.js'),
+      ),
+    );
+
+    $form['fb_post_settings']['fb_post_enabled'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow post this content type to Facebook.'),
+      '#default_value' => variable_get('fb_post_enabled_' . $fake_node->type, FALSE),
+    );
+
+    if ($token = fb_get_admin_token()) {
+      $form['fb_post_settings']['defaults'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Defaults'),
+        '#description' => t('Values you save here will be the defaults when new content is created.'),
+      );
+      $form['fb_post_settings']['defaults']['fb_post_settings'] = _fb_post_node_settings_form(array(), $form_state, $fake_node, $token);
+      $form['#submit'][] = 'fb_post_node_type_settings_submit';
+
+      $form['fb_post_settings']['more'] = array(
+        '#markup' => t('Users with <a href=!url target=_blank>permission to override default settings</a> will be able to post to their own facebook accounts and pages.', array(
+                         '!url' => url('admin/people/permissions', array('fragment' => 'module-fb_post')),
+                       )),
+        '#prefix' => '<p>', '#suffix' => '</p>',
+      );
+
+      $form['fb_post_settings']['fb'] = array(
+        '#markup' => t('Don\'t see the options you expected?  Change the <a href=!url target=_blank><em>Post to Facebook</em> settings</a>, then refresh this form.', array(
+                         '!url' => url(FB_POST_PATH_ADMIN . '/fb_post'),
+                       )),
+        '#prefix' => '<p>', '#suffix' => '</p>',
+      );
+    }
+    else {
+      $form['fb_post_settings']['fb'] = array(
+        '#markup' => t('<a href=!url target=_blank>Configure settings</a>, then refresh this form to see all options.', array(
+                         '!url' => url(FB_POST_PATH_ADMIN . '/fb_post'),
+                       )),
+        '#prefix' => '<p>', '#suffix' => '</p>',
+      );
+    }
+
+  }
+  return $form;
+}
+
+function fb_post_node_type_settings_submit($form, &$form_state) {
+  // Drupal will not save our array of settings automatically.
+  if ($form_state['values']['fb_post_settings'] &&
+      empty($form_state['fb_post']['settings_invalid'])) {
+    variable_set('fb_post_settings_' . $form_state['values']['type'] . '_array',
+                 $form_state['values']['fb_post_settings']);
+  }
+
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ * Implements hook_form_node_form_alter().
+ */
+function fb_post_form_node_form_alter(&$form, $form_state) {
+  $node = $form['#node'];
+
+  $enabled = variable_get('fb_post_enabled_' . $node->type, FALSE);
+  if (!$enabled) {
+    return;
+  }
+
+  $token = fb_get_admin_token();
+  // Site-wide option to publish
+  $form['fb_post_settings'] = array(
+    '#type' => 'fieldset',
+    '#access' => user_access(FB_POST_PERM_POST_NODE) || user_access(FB_POST_PERM_OVERRIDE_NODE),
+    '#title' => t('Post to Facebook'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#attributes' => array(
+      'class' => array('fb-node-settings-form'),
+    ),
+    '#attached' => array(
+      //'js' => array(drupal_get_path('module', 'comment') . '/comment-node-form.js'),
+     ),
+    //'#weight' => 30,
+  );
+
+  if (user_access(FB_POST_PERM_POST_NODE)) {
+    $form['fb_post_settings']['site-wide'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Default Settings'),
+      '#description' => t(''),
+    );
+    if ($token) {
+      $form['fb_post_settings']['site-wide']['fb_post_settings'] = _fb_post_node_settings_form(array(), $form_state, $node, $token);
+    }
+    else {
+      $form['fb_post_settings']['site-wide']['fb'] = array(
+        '#markup' => t('<a href=!url target=_blank>Configure settings</a> for site-wide publishing options.', array(
+                         '!url' => url(FB_POST_PATH_ADMIN),
+                       )),
+        '#prefix' => '<p>', '#suffix' => '</p>',
+      );
+    }
+  }
+
+  // User-specific options
+  $user_token = fb_user_token();
+
+  if ($user_token && $user_token == $token) {
+    // Don't show second settings when same token.
+  }
+  elseif (user_access(FB_POST_PERM_OVERRIDE_NODE)) {
+    if ($fb_app = fb_get_app()) {
+
+      $form['fb_post_settings']['fb_post_not_connected'] = array(
+        '#markup' => t('<a href=!url target=_blank>Authorize the application</a> to see your publishing options.', array(
+                         '!url' => fb_client_auth_url(array(
+                                                        'scope' => 'publish_actions',
+                                                      )),
+                       )),
+        '#prefix' => '<p class="fb_not_connected">', '#suffix' => '</p>',
+      );
+    }
+
+    if ($user_token) {
+      $form['fb_post_settings']['fb_post_user_settings'] = _fb_post_node_settings_form(array(), $form_state, $node, $user_token);
+      $form['fb_post_settings']['fb_post_user_settings']['#prefix'] = '<div class="fb_connected">';
+      $form['fb_post_settings']['fb_post_user_settings']['#suffix'] = '</div>';
+    }
+    else {
+
+      $form['fb_post_settings']['fb_post_user_connected'] = array(
+        '#markup' => t('Connected as !name.  Reload (or press preview button) to see posting options.', array(
+                         //'!name' => '<fb:name useyou=false linked=false uid=loggedinuser></fb:name>', // Old way XFBML
+                         '!name' => '<span class=fb_replace>!name</span>', // New way, see FB_JS.doReplace().
+                       )),
+        '#prefix' => '<p class="fb_connected">', '#suffix' => '</p>',
+      );
+    }
+  }
+}
+
+/**
+ * Helper for the node submission form and the node type form.
+ */
+function _fb_post_node_settings_form($form, &$form_state, $node, $token) {
+
+  if ($token == fb_get_admin_token(FB_POST_VAR_ADMIN_TOKEN)) {
+    // Site-wide defaults.
+    $defaults = variable_get('fb_post_settings_' . $node->type . '_array', array(
+                               'status' => FALSE, // Don't post by default.
+                               'message' => '',
+                               'feed_id' => NULL,
+                               'account_id' => NULL,
+                             ));
+    $site_wide = TRUE;
+  }
+  else {
+    // @TODO - user-specific defaults
+    $defaults = array(
+      'status' => FALSE,
+      'message' => '',
+      'feed_id' => NULL,
+      'account_id' => NULL,
+    );
+    $site_wide = FALSE;
+  }
+
+  try {
+    $graph['me'] = fb_graph('me', $token);
+    try {
+      // me/accounts fails when using a page token.
+      // @todo figure out some other way whether token is a page token or not.
+      $graph['me/accounts'] = @fb_graph('me/accounts', $token);
+    }
+    catch (Exception $e) {
+      $graph['me/accounts'] = array();
+    }
+
+    $me = $graph['me'];
+    $accounts = $graph['me/accounts'];
+    // TODO: check permission to post
+    /*
+      $perms = fb_fql("SELECT publish_actions,manage_pages FROM permissions WHERE uid=$me[id]");
+    dpm($perms[0], __FUNCTION__);
+    $form['auth'] = array(
+      '#type' => 'markup',
+      '#markup' => t('TODO'),
+    );
+    */
+
+    // Build a list of pages the user can post to.
+    // Keep track of tokens associated with each page.
+    $page_options = array(
+      $me['id'] => $me['name'],
+    );
+    $page_tokens = array(
+      $me['id'] => $token,
+    );
+
+    /* The accounts data include pages and applications the user can administer.  Applications no longer have an about page, so we don't want to include them in the options. They don't seem to have 'perms' associated with them, so we test for that. */
+    if (!empty($accounts)) {
+      foreach ($accounts['data'] as $account) {
+        if (!empty($account['access_token']) && !empty($account['perms'])) {
+          // @TODO: explicitly check for required perms (CREATE_CONTENT? ADMINISTER?)
+          $page_options[$account['id']] = $account['name'];
+          $page_tokens[$account['id']] = $account['access_token'];
+        }
+      }
+    }
+
+    // TODO defaults
+
+    $form['#tree'] = TRUE;
+
+    $form['status'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Post a link to this %type on Facebook.', array('%type' => $node->type)),
+      //'#description' => 'Uncheck to not post.',
+      '#default_value' => $defaults['status'],
+    );
+
+    // Don't publish again, unless explicitly asked.
+    if (isset($node->fb_post_graph) && count($node->fb_post_graph)) {
+      $form['status']['#title'] = t('Post another link to this %type on Facebook.', array('%type' => $node->type));
+      $form['status']['#default_value'] = FALSE;
+      $form['status']['#description'] = t('Already posted %count time(s).', array(
+                                            '%count' => count($node->fb_post_graph),
+                                          ));
+
+      // Debugging...
+      /*
+        foreach ($node->fb_post_graph as $row) {
+        $form['debug'][$row->graph_id] = array(
+          '#markup' => l($row->graph_id, url("https://graph.facebook.com/{$row->graph_id}", array(
+                                               'query' => array(
+                                                 'access_token' => $token,
+                                               ),
+                                             ))),
+        );
+      }
+      */
+      // end debug
+
+    }
+
+    // TODO: does this still work?
+    $form['message'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Message',
+      '#default_value' => $defaults['message'],
+      '#description' => 'A brief message to precede the link.',
+    );
+
+    // Include access tokens as form values (rather than in form_state) so they get passed all the way through to node hooks.
+    /*
+    $form['access_token'] = array(
+      '#type' => 'value',
+      '#value' => $token,
+      //'#element_validate' => array('fb_post_settings_token_validate'),
+    );
+    */
+    $form['page_tokens'] = array(
+      '#type' => 'value',
+      '#value' => $page_tokens,
+    );
+
+    $form['feed_id'] = array(
+      '#type' => 'select',
+      '#title' => 'Publish to',
+      '#options' => $page_options,
+      '#default_value' => $defaults['feed_id'],
+      '#description' => 'You may select a user\'s wall, or a managed page.',
+    );
+
+
+    // @TODO: this feature is not working.  Does facebook even support it anymore???
+    /*
+    $form['account_id'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Authored by %name', array('%name' => $me['name'])),
+      '#description' => t('Posts to a <em>page</em> are attributed to the page.  Check this to attribute your facebook account instead.'),
+      '#return_value' => $me['id'],
+      '#default_value' => $defaults['account_id'],
+    );
+    */
+    $form['data'] = array('#tree' => TRUE); // Placeholder
+
+    $form['#element_validate'] = array('fb_post_node_settings_validate');
+
+  }
+  catch (Exception $e) {
+    //dpm($e, __FUNCTION__);
+    if ($site_wide) {
+      fb_log_exception($e, 'Post to Facebook settings not available.');
+    }
+    if (!empty($e->fb_code) && $e->fb_code == 190) {
+      if ($site_wide) {
+        // TODO: check user access
+        drupal_set_message(t('The post to facebook token is no longer valid and should be <a href=!replace_url>replaced</a>.', array(
+                               '!replace_url' => url(FB_PATH_ADMIN_CONFIG . '/token_replace/' . FB_POST_VAR_ADMIN_TOKEN),
+                             )));
+      $form['error'] = array(
+        '#markup' => t('Unable to connect with facebook, possibly authorization has expired.  <a href=!url target=_blank>Reset your authorization</a>, then refresh this form to see all options.', array(
+                         '!url' => url(FB_POST_PATH_ADMIN),
+                       )),
+      );
+      }
+      else {
+        $form['error'] = array(
+          '#markup' => t('Unable to publish to your personal timeline.  You are not currently connected to Facebook.', array(
+                         )),
+        );
+      }
+    }
+    $form_state['fb_post']['settings_invalid'] = TRUE;
+  }
+
+  return $form;
+}
+
+function fb_post_node_settings_validate($element, &$form_state) {
+  $values = drupal_array_get_nested_value($form_state['values'], $element['#parents']);
+
+  /* On second thought, allow a default message even when status is not set.
+  if ($values['message'] && !$values['status']) {
+    form_error($element['message'], t('Your message %message will not be published to Facebook unless the Post checkbox is selected.  Check the box or erase the message to continue.', array(
+                                        '%message' => $values['message'],
+                                      )));
+  }
+  */
+
+  if (isset($form_state['values']['status']) &&
+      empty($form_state['values']['status'])) {
+    // Node form, node not published.
+    if ($values['message'] || $values['status']) {
+      form_error($element, t('Cannot post to Facebook because this content is not published.'));
+    }
+  }
+}
+
+function fb_post_entity_publish_form($form, &$form_state, $entity) {
+  if ($token = fb_get_admin_token()) {
+    $form['fb'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Post to Facebook'),
+      '#description' => t('Post to facebook using site-wide settings'),
+    );
+    $form['fb']['fb_post_settings'] = _fb_post_node_settings_form(array(), $form_state, $entity, $token);
+    $form['fb']['fb_post_settings']['status'] = array('#type' => 'value', '#value' => 1);
+    $form['fb']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Post to Facebook'),
+    );
+    $form['#entity'] = $entity;
+  }
+
+  return $form;
+}
+
+function fb_post_entity_publish_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  fb_post_publish_node($values['fb_post_settings'], $form['#entity']);
+}
+
+
+//// Cron support
+
+// TODO: get comments working again.
+function fb_post_cron() {
+  $debug = FALSE; // debug
+  $throttle = variable_get('fb_post_cron_throttle', 1);
+  $token = variable_get(FB_VAR_ADMIN_ACCESS_TOKEN, NULL);
+  $do_comments = variable_get('fb_post_cross_post_comments', FALSE);
+
+  if ($throttle && $token && $do_comments) {
+    $result = db_query("SELECT * FROM {fb_post_graph} ORDER BY last_cron");
+    if ($debug) print("<pre>");
+    if ($debug) print_r($GLOBALS['user']); // just checking who cron is run as.
+    foreach ($result as $item) {
+      try {
+        if ($debug) print_r($item);
+        if ($item->entity_type == 'node') {
+          $info = fb_graph($item->graph_id, $token);
+          if ($debug) print_r($info);
+
+          // @TODO - respect comment privacy???
+
+          if ($info['comments']['count']) {
+            $node = node_load($item->entity_id);
+            foreach ($info['comments']['data'] as $fb_comment) {
+              $result2 = db_query("SELECT * FROM {fb_post_graph} WHERE graph_id=:graph_id", array(':graph_id' => $fb_comment['id']));
+              $item2 = $result2->fetchObject();
+              if ($item2->entity_id) {
+                // The comment is already saved locally.
+              }
+              else {
+                // Add the comment to drupal.
+                if ($debug) print_r($fb_comment);
+                $author_info = fb_graph($fb_comment['from']['id'], $token);
+                if ($debug) print_r($author_info);
+                $fake_comment = new stdClass();
+                $fake_comment->nid = $node->nid;
+                $fake_comment->name = $fb_comment['from']['name'];
+                $fake_comment->homepage = $author_info['link'];
+                // @TODO - get created date from $fb_comment['created_time']
+                $fake_comment->language = LANGUAGE_NONE;
+                $fake_comment->comment_body[$fake_comment->language][0]['value'] = $fb_comment['message'];
+                $fake_state = array(
+                  'values' => array(
+                    'op' => t('Save'),
+                  ),
+                );
+                // Give us permission
+                $old_perm = user_access('post comments'); // Must call user_access to make sure its not empty.
+                $perm = &drupal_static('user_access');
+                if ($debug) print_r($perm);
+                $perm[$GLOBALS['user']->uid]['post comments'] = TRUE;
+                if ($debug) print_r(drupal_static('user_access'));
+                $result3 = drupal_form_submit("comment_node_{$node->type}_form", $fake_state, $fake_comment);
+                $perm[$GLOBALS['user']->uid]['post comments'] = $old_perm;
+                if ($debug) print_r($result3);
+                if ($debug) print_r($fake_state);
+                if ($cid = $fake_state['values']['cid']) {
+                  // The comment was saved.
+                  db_query("INSERT INTO {fb_post_graph} (entity_id, entity_type, graph_id, actor_id, last_cron) VALUES (:entity_id, :entity_type, :graph_id, :actor_id, :last_cron)", array(
+                             ':entity_id' => $cid,
+                             ':entity_type' => 'comment',
+                             ':graph_id' => $fb_comment['id'],
+                             ':actor_id' => $fb_comment['from']['id'],
+                             ':last_cron' => REQUEST_TIME,
+                           ));
+                }
+              }
+            }
+          }
+        } // end if entity_type == node
+        // Mark item as visited during this cron job.
+        db_query("UPDATE {fb_post_graph} SET last_cron = :last_cron WHERE graph_id=:graph_id", array(
+                   ':last_cron' => REQUEST_TIME,
+                   ':graph_id' => $item->graph_id,
+                 ));
+      } catch (Exception $e) {
+        // Could be just an expired token.
+        $message = '%function failed to process %type %id.  %reason';
+        $args = array(
+          '%function' => __FUNCTION__,
+          '%type' => $item->entity_type,
+          '%id' => $item->entity_id,
+          '%reason' => $e->getMessage(),
+        );
+        watchdog('fb', $message, $args, WATCHDOG_WARNING);
+      }
+    } // end foreach $result as $item.
+
+    if ($debug) print("</pre>");
+  }
+}

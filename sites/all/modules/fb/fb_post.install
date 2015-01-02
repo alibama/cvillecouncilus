@@ -1,0 +1,60 @@
+<?php
+
+function fb_post_schema() {
+  $schema['fb_post_graph'] = array(
+    'description' => 'Maps local entity ids to facebook graph ids.',
+    'fields' => array(
+      'entity_id' => array(
+        'description' => '',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'entity_type' => array(
+        'type' => 'varchar',
+        'length' => 32, // 32 used in other drupal tables.
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'graph_id' => array(
+        'description' => 'Unique ID on facebook\'s graph.  Not all ids are numbers.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      'actor_id' => array(
+        'description' => 'When pulling a post from facebook, this is the fbu of the poster.  Although these should always be numbers, using varchar just in case.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ),
+      /*
+      'origin' => array( // Is this needed, now that actor_id is there?
+        'description' => 'Was item created on facebook or drupal?',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      */
+      'last_cron' => array(
+        'description' => 'The Unix timestamp when cron last acted on this row.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'entity' => array('entity_id', 'entity_type'),
+      'last_cron' => array('last_cron'),
+    ),
+    'unique keys' => array(
+      'graph_id' => array('graph_id'),
+    ),
+  );
+
+  return $schema;
+}
