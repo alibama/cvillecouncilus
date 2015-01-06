@@ -1,0 +1,13 @@
+name = Clientside Validation Hierarchical Select
+description = Adds clientside validation support for Hierarchical Select elements.
+core = 7.x
+package = Clientside Validation
+dependencies[] = clientside_validation
+dependencies[] = hierarchical_select
+
+; Information added by Drupal.org packaging script on 2014-08-08
+version = "7.x-2.0-alpha2+3-dev"
+core = "7.x"
+project = "clientside_validation"
+datestamp = "1407506068"
+

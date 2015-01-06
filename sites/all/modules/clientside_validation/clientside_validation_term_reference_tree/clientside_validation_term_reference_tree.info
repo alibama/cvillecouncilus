@@ -1,0 +1,13 @@
+name = Clientside Validation Term Reference Tree
+description = Adds clientside validation support for Taxonomy Term Reference Tree.
+core = 7.x
+package = Clientside Validation
+dependencies[] = clientside_validation
+dependencies[] = term_reference_tree
+
+; Information added by Drupal.org packaging script on 2014-08-08
+version = "7.x-2.0-alpha2+3-dev"
+core = "7.x"
+project = "clientside_validation"
+datestamp = "1407506068"
+

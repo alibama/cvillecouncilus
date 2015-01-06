@@ -1,0 +1,14 @@
+name = Clientside Validation Elements
+description = Add Clientside Validation support for the Elements module
+core = 7.x
+package = Clientside Validation
+
+dependencies[] = clientside_validation
+dependencies[] = elements
+
+; Information added by Drupal.org packaging script on 2014-08-08
+version = "7.x-2.0-alpha2+3-dev"
+core = "7.x"
+project = "clientside_validation"
+datestamp = "1407506068"
+

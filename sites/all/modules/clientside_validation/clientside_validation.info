@@ -1,0 +1,18 @@
+name = Clientside Validation
+description = Add client side validation to forms and Webforms
+core = 7.x
+package = Clientside Validation
+
+dependencies[] = ctools
+dependencies[] = libraries
+
+files[] = includes/ClientsideValidationValidator.inc
+
+configure = admin/config/validation/clientside_validation
+
+; Information added by Drupal.org packaging script on 2014-08-08
+version = "7.x-2.0-alpha2+3-dev"
+core = "7.x"
+project = "clientside_validation"
+datestamp = "1407506068"
+
