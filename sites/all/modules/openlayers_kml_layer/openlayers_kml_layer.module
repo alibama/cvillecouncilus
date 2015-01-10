@@ -1,0 +1,460 @@
+<?php
+/**
+ * @file
+ * Main OpenLayers KML Layer File
+ *
+ * This file holds the main Drupal hook functions.
+ */
+ 
+/**
+ * @todo
+ *   - Allow for zoom to extent
+ *   - Allow to attach and save to presets
+ *   - Don't hardcode title and body as layer title and description
+ *
+ *   Less important
+ *   - Allow for associating styles
+ *   - Allow for title and description (field level)
+ *   - Allow for popup configuration
+ *   - Allow for URLS (with proxies)
+ */
+ 
+/**
+ * Allowed extensions
+ */
+define('OPENLAYERS_KML_LAYER_ALLOWED_EXTENSIONS', 'kml');
+ 
+/**
+ * Layer prefix
+ */
+define('OPENLAYERS_KML_LAYER_PREFIX', 'openlayers_kml_layer_prefix');
+
+/**
+ * Implements hook_help().
+ */
+function openlayers_kml_layer_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#openlayers_kml_layer':
+      $output = '<p>' . t('Provides a field type that allows users to upload a KML file and provide a layer and/or display a map.') . '</p>';
+  }
+  return '';
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function openlayers_kml_layer_field_widget_info() {
+  // Get generic file options
+  $info = file_field_widget_info();
+  $settings = is_array($info['file_generic']['settings']) ? $info['file_generic']['settings'] : array();
+  $settings['create_layer'] = FALSE;
+  $settings['attach_map'] = array();
+
+  return array(
+    'openlayers_kml_layer_file' => array(
+      'label' => t('KML File'), 
+      'field types' => array('file'), 
+      'settings' => $settings,
+      'behaviors' => array(
+        'multiple values' => FIELD_BEHAVIOR_CUSTOM,
+        'default value' => FIELD_BEHAVIOR_NONE,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_settings_form().
+ */
+function openlayers_kml_layer_field_widget_settings_form($field, $instance) {
+  $widget = $instance['widget'];
+  $settings = $widget['settings'];
+  $form = array();
+  
+  if ($widget['type'] == 'openlayers_kml_layer_file') {
+    // Get default file options
+    $form = file_field_widget_settings_form($field, $instance);
+    $form['create_layer'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Create new layer'),
+      '#description' => t('If set, then a new OpenLayers layer will be created from the KML file.'),
+      '#default_value' => isset($settings['create_layer']) ? $settings['create_layer'] : FALSE,
+    );
+    $form['attach_map'] = array(
+      '#type' => 'select',
+      '#title' => t('Attach to map'),
+      '#description' => t('If set, then the newly created layer will be attached to the specified map.  This only applies if the Create new layer option is enabled.'),
+      '#options' => openlayers_kml_layer_get_maps(),
+      '#default_value' => isset($settings['attach_map']) ? $settings['attach_map'] : 0,
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function openlayers_kml_layer_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'field_ui_field_edit_form' && $form['#instance']['widget']['type'] == 'openlayers_kml_layer_file') {
+    // Change file types to only KML types
+    $form['instance']['settings']['file_extensions']['#default_value'] = OPENLAYERS_KML_LAYER_ALLOWED_EXTENSIONS;
+    $form['instance']['settings']['file_extensions']['#type'] = 'value';
+    // Enable description field
+    $form['instance']['settings']['description_field']['#default_value'] = TRUE;
+    $form['instance']['settings']['description_field']['#type'] = 'value';
+  }
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function openlayers_kml_layer_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  // Regular file fields are good way to handle this
+  $element += file_field_widget_form($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function openlayers_kml_layer_field_formatter_info() {
+  return array(
+    'openlayers_kml_layer_map' => array(
+      'label' => t('OpenLayers Map'),
+      'field types' => array('file'),
+      'settings' => array(
+        'map_preset' => variable_get('openlayers_default_map', 'default'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function openlayers_kml_layer_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = '';
+
+  if ($display['type'] == 'openlayers_kml_layer_map') {
+    $summary = t('Determine which map should be displayed');
+  }
+
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function openlayers_kml_layer_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+
+  // Map preset formatter
+  if ($display['type'] == 'openlayers_kml_layer_map') {
+    // Get preset options, filtered to those which have the GeoField placeholder layer
+    $presets = openlayers_maps();
+    $preset_options = array();
+    foreach ($presets as $preset) {
+      $preset_options[$preset->name] = $preset->title;
+    }
+    
+    $element['map_preset'] = array(
+      '#title' => t('OpenLayers Preset'),
+      '#type' => 'select',
+      '#default_value' => $settings['map_preset'] ? $settings['map_preset'] : 'default',
+      '#required' => TRUE,
+      '#options' => $preset_options,
+      '#description' => t('Select which OpenLayers map will be displayed.'),
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function openlayers_kml_layer_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  if ($display['type'] == 'openlayers_kml_layer_map') {
+    $map_name = $display['settings']['map_preset'] ? $display['settings']['map_preset'] : 'default';
+    $element[0] = array('#markup' => openlayers_kml_layer_render_field_formatter($map_name, $items, $entity)); 
+  }
+
+  return $element;
+}
+
+/**
+ * Render map from KML file field
+ */
+function openlayers_kml_layer_render_field_formatter($map_name = '', $items = array(), $entity) {
+  $output = '';
+  
+  foreach ($items as $item) {
+    $output .= openlayers_kml_layer_render_kml_map($map_name, file_create_url($item['uri']), 
+      OPENLAYERS_KML_LAYER_PREFIX . '-' . $item['fid'], check_plain($entity->title));
+  }
+  
+  return $output;
+}
+
+/**
+ * Render a map with a KML URL
+ */
+function openlayers_kml_layer_render_kml_map($map_name, $kml_url, $layer_id, $layer_title) {
+  $output = '';
+
+  // Manually create map object
+  $map_export = openlayers_map_load($map_name);
+  $map_built = openlayers_build_map($map_export->data);
+
+  // Add KML data
+  $kml_layer = openlayers_kml_layer_kml_layer($kml_url, $layer_title);
+  $map_built['layers'][$layer_id] = $kml_layer;
+  $map_built['layer_activated'][$layer_id] = $layer_id;
+  $map_built['layer_switcher'][$layer_id] = $layer_id;
+  
+  // Need to call render function to include relevant JS
+  $layer_type = openlayers_layer_type_load('openlayers_layer_type_kml');
+  $layer_type->render($map_built);
+  
+  // Enable popups
+  $map_built['behaviors']['openlayers_behavior_popup']['layers'][$layer_id] = $layer_id;
+  $behaviors = openlayers_behaviors();
+  $behaviors_class = ctools_plugin_get_class($behaviors['openlayers_behavior_popup'], 'behavior');
+  $behavior = new $behaviors_class($map_built['behaviors']['openlayers_behavior_popup'], $map_built);
+  $behavior->render($map_built);
+  
+  // Have to manually add JS for map
+  $js = array('openlayers' => array('maps' => array($map_built['id'] => $map_built)));
+  drupal_add_js($js, 'setting');
+
+  // Push map through theme function and return
+  $output = theme('openlayers_map', array(
+    'map' => $map_built,
+    'map_name' => $map_name
+  ));
+
+  return $output;
+}
+
+/**
+ * Implements hook_field_attach_presave().
+ */
+function openlayers_kml_layer_field_attach_presave($entity_type, $entity) {
+  $data = openlayers_kml_layer_relevant_entity_data($entity_type, $entity);
+  
+  if (!empty($data)) {
+    foreach ($data as $fid => $file_info) {
+      $create = $file_info['fi_info']['instance_info']['widget']['settings']['create_layer'];
+      if ($create) {
+        $layer_name = OPENLAYERS_KML_LAYER_PREFIX . '-' . $fid;
+        $layer = new stdClass;
+        $layer->name = $layer_name;
+        $layer->title = $entity->title;
+        // This sucks, sorry.
+        $layer->description = !empty($file_info['description']) ? $file_info['description'] : '';
+        $layer->data = openlayers_kml_layer_kml_layer(
+          file_create_url($file_info['file_info']->uri), $entity->title);
+          
+        // Check for existing and save
+        if (db_select('openlayers_layers')
+            ->fields('openlayers_layers', array('name'))
+            ->condition('name', $layer->name)
+            ->execute()
+            ->fetchCol()) {
+          $save = drupal_write_record('openlayers_layers', $layer, 'name');
+        }
+        else {
+          $save = drupal_write_record('openlayers_layers', $layer);
+        }
+        
+        // Check if saved
+        if ($save) {
+          drupal_set_message(t('New KML layer added.'));
+          // Check if need to attach to map
+          $map = $file_info['fi_info']['instance_info']['widget']['settings']['attach_map'];
+          if ($map) {
+            // Load map
+            $map = openlayers_map_load($map);
+            if ($map) {
+              // Attach to map (assume activated and in switcher)
+              $map->data['layers'][$layer->name] = $layer->name;
+              $map->data['layer_activated'][$layer->name] = $layer->name;
+              $map->data['layer_switcher'][$layer->name] = $layer->name;
+              // Save map
+              if (openlayers_map_save($map)) {
+                drupal_set_message(t('KML Layer attached to %map', array('%map' => $map->title))); 
+              }
+            }
+          }
+        }
+        else {
+          drupal_set_message(t('Error saving new KML layer.')); 
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_file_delete().
+ */
+function openlayers_kml_layer_file_delete($file) {
+  // Just check by fid
+  $layer_name = OPENLAYERS_KML_LAYER_PREFIX . '-' . $file->fid;
+  $found = db_select('openlayers_layers')
+    ->fields('openlayers_layers', array('name'))
+    ->condition('name', $layer_name)
+    ->execute()
+    ->fetchCol();
+  if ($found) {
+    // Detach from any maps
+    openlayers_kml_layer_detach_layer($layer_name);
+    
+    // Delete layer
+    $delete = db_delete('openlayers_layers')
+      ->condition('name', $layer_name)
+      ->execute();
+  }
+}
+
+/**
+ * Remove a layer from any saved map.
+ */
+function openlayers_kml_layer_detach_layer($layer_name) {
+  $maps = openlayers_maps();
+  foreach ($maps as $m => $map) {
+    if (isset($map->data['layers'][$layer_name])) {
+      // Remove the layer from the map object
+      unset($map->data['layers'][$layer_name]);
+      
+      // Save new value
+      drupal_write_record('openlayers_maps', $map, 'name');
+    }
+  }
+}
+
+/**
+ * Given file, check if relevant file.
+ */
+function openlayers_kml_layer_relevant_files($file) {
+  // The source will be in format <field_name>_<lang>_<delta>
+  // if coming from an entity.  This is not a perfect check,
+  // what if there was a field name 'kml_layer' and one that
+  // was named 'kml_layer_testing' (that was not a kml layer).
+  if (!empty($files['source'])) {
+    $fi_info = openlayers_kml_layer_field_instances(TRUE);
+    // Go through KML layer fields
+    foreach ($fi_info as $fi => $info) {
+      if (stripos($fi, $files['source']) !== FALSE ) {
+        return TRUE;
+      }
+    }
+  }
+  
+  return FALSE;
+}
+
+/**
+ * Given entity, get relevant files
+ */
+function openlayers_kml_layer_relevant_entity_data($entity_type, $entity) {
+  $files = array();
+
+  $fi_info = openlayers_kml_layer_field_instances();
+  // Go through KML layer fields
+  if (isset($fi_info[$entity_type]) && isset($fi_info[$entity_type][$entity->type])) {
+    foreach ($fi_info[$entity_type][$entity->type] as $fi => $info) {
+      if (isset($entity->{$fi}) && is_array($entity->{$fi})) {
+        // Go through languages
+        foreach ($entity->{$fi} as $l => $lang) {
+          // Go through values
+          foreach ($lang as $v => $value) {
+            $files[$value['fid']] = $value;
+            $files[$value['fid']]['file_info'] = file_load($value['fid']);
+            $files[$value['fid']]['fi_info'] = $info;
+          }
+        }
+      }
+    }
+  }
+  
+  return $files;
+}
+
+/**
+ * Determine what are KML fields per entity bundle.
+ *
+ * Returns an array of instance and field data by entity type.
+ */
+function openlayers_kml_layer_field_instances($flatten = FALSE) {
+  $data = &drupal_static(__FUNCTION__);
+  
+  if (!isset($data)) {
+    // Get all fields
+    $fields = field_info_fields();
+    foreach ($fields as $f => $field) {
+      foreach ($field['bundles'] as $e => $entity) {
+        foreach ($entity as $b => $bundle) {
+          // Get instance data
+          $instance = field_info_instance($e, $f, $bundle);
+          if ($instance['widget']['type'] == 'openlayers_kml_layer_file') {
+            if ($flatten) {
+              $data[$f]['field_info'] = $field;
+              $data[$f]['instance_info'] = $instance;
+            }
+            else {
+              $data[$e][$bundle][$f]['field_info'] = $field;
+              $data[$e][$bundle][$f]['instance_info'] = $instance;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return $data;
+}
+
+/**
+ * Create KML Layer
+ */
+function openlayers_kml_layer_kml_layer($kml_url, $layer_title) {
+  return array(
+    'url' => $kml_url,
+    'formatOptions' => array(
+      'extractStyles' => 1,
+      'extractAttributes' => 1,
+    ),
+    'layer_type' => 'openlayers_layer_type_kml',
+    'layer_handler' => 'kml',
+    'projection' => array('4326'),
+    'baselayer' => FALSE,
+    'vector' => TRUE,
+    'title' => $layer_title,
+    'weight' => -20,
+  );
+}
+
+/**
+ * Get map options
+ */
+function openlayers_kml_layer_get_maps() {
+  $options = array(0 => t('<none>'));
+  
+  // Get maps
+  $maps = openlayers_maps();
+  foreach ($maps as $m => $map) {
+    if (empty($exclude[$m])) {
+      $options[$map->name] = check_plain($map->title);
+    }
+  }
+  
+  return $options;
+}

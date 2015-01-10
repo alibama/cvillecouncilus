@@ -1,0 +1,12 @@
+name = OpenLayers KML Layer
+description = Provides a field type that allows users to upload a KML file and provide a layer and/or display a map.
+core = 7.x
+package = OpenLayers
+dependencies[] = openlayers
+dependencies[] = file
+; Information added by drupal.org packaging script on 2013-10-01
+version = "7.x-1.0-beta1+2-dev"
+core = "7.x"
+project = "openlayers_kml_layer"
+datestamp = "1380620950"
+
