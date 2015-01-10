@@ -1,0 +1,25 @@
+diff --git a/advpoll.module b/advpoll.module
+index 5891260..26442ea 100644
+--- a/advpoll.module
++++ b/advpoll.module
+@@ -1140,12 +1140,14 @@ function _advpoll_show_writeins_access() {
+ }
+ 
+ /**
+- * Implementation of hook_views_api().
++ * Implementation of hook_votingapi_relationships().
+  */
+-function advpoll_views_api() {
+-  return array(
+-    'api' => 3,
+-    'path' => drupal_get_path('module', 'advpoll') . '/views',
++function advpoll_votingapi_relationships() {
++  $relationships[] = array(
++    'description' => t('Advanced Poll'),
++    'entity_type' => 'advpoll',
++    'base_table' => 'node',
++    'entity_id_column' => 'nid',
+   );
++  return $relationships;
+ }
+-

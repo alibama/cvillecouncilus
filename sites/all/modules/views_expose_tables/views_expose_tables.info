@@ -1,0 +1,22 @@
+name = Views Expose Tables
+description = Exposes Drupal DB tables to Views
+core = 7.x
+version = "7.x-dev"
+project = "Views Expose Tables"
+
+package = Views
+
+configure = admin/structure/views/expose_tables
+
+dependencies[] = views
+
+files[] = views_expose_table.module
+files[] = views_expose_table.views.inc
+
+
+; Information added by drupal.org packaging script on 2013-10-19
+version = "7.x-1.0-alpha1+0-dev"
+core = "7.x"
+project = "views_expose_tables"
+datestamp = "1382164749"
+

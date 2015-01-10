@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+
+function views_expose_tables_menu() { 
+$items = array(); 
+  $items['admin/structure/views/expose_tables'] = array( 
+   'title' => 'Views Expose Tables', 
+   'description' => 'Configuration for the Views Expose Table module.', 
+   'page callback' => 'drupal_get_form', 
+   'page arguments' => array('views_expose_tables_admin_form'), 
+   'access arguments' => array('administer site configuration'),
+   'type' => MENU_NORMAL_ITEM, 
+	);
+return $items;
+}
+
+/** 
+ *  Page Argument function for Views Expose Table admin config page
+ *
+ */
+
+function views_expose_tables_admin_form($form, &$form_state) {
+global $databases;
+$db = $databases['default']['default']['database'];
+
+$result = db_query("SHOW TABLES" );
+if (!$result) {
+    echo 'Could not run query: ' . mysql_error();
+    exit;
+}
+
+if ($result->rowCount()) {
+    while ($row = $result->fetchObject()) {
+		   $tables[] = $row->{'Tables_in_' . $db};
+    }//end while row
+} //end if row count
+
+$options =  array();
+
+foreach ($tables as $table){
+  $options[$table] = $table;
+}
+
+$empty = array();
+
+$form['expose_tables'] = array(
+   '#type' => 'checkboxes',
+   '#options' => $options,
+   '#title' => t('Tables to expose as raw data to views'), 
+   '#description' => t('Check the tables to expose to views as base tables'), 
+   '#default_value' => variable_get('expose_tables',$empty),
+);
+
+$form['#submit'][] = 'views_expose_tables_admin_form_submit';
+
+return system_settings_form($form);
+
+}
+
+/** 
+ * Form submit handler for Views Expose Table admin config page
+ *
+ */
+
+function views_expose_tables_admin_form_submit($form, &$form_state) { 
+
+variable_set('expose_tables', $form_state['values']['expose_tables']); 
+//clear views cache, not views data cache
+ cache_clear_all('*', 'cache_views', TRUE);
+
+}
+
+/**
+ * Implements hook_views_api().
+ */
+
+function views_expose_tables_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'views_expose_tables') . '/includes',
+  );
+}
+

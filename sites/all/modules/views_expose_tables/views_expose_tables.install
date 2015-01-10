@@ -1,0 +1,7 @@
+<?php
+
+function views_expose_tables_uninstall() {
+
+variable_del('expose_tables');
+
+}
