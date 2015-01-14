@@ -1,0 +1,4 @@
+Provides OAuth2 server functionality based on the
+oauth2-server-php (https://github.com/bshaffer/oauth2-server-php) library.
+
+See http://drupal.org/node/1938218 for information on getting started.
