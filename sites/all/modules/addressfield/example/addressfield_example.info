@@ -7,9 +7,9 @@ hidden = TRUE
 dependencies[] = ctools
 dependencies[] = addressfield
 
-; Information added by Drupal.org packaging script on 2015-01-05
-version = "7.x-1.0-rc1+9-dev"
+; Information added by Drupal.org packaging script on 2015-01-13
+version = "7.x-1.0-rc1+16-dev"
 core = "7.x"
 project = "addressfield"
-datestamp = "1420463788"
+datestamp = "1421176981"
 
