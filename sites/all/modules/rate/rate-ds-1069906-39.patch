@@ -1,0 +1,69 @@
+diff --git a/rate.module b/rate.module
+index 26f55e5..ac1831d 100644
+--- a/rate.module
++++ b/rate.module
+@@ -1490,3 +1490,64 @@ function rate_cron() {
+   module_load_include('inc', 'rate', 'rate.bots');
+   rate_bots_delete_votes();
+ }
++
++/**
++ * Implements hook_ds_info
++ */
++function rate_ds_fields_info($entity_type) {
++  $widgets = variable_get(RATE_VAR_WIDGETS, array());
++  $fields = array();
++  foreach ( $widgets as $wid => $widget ) {
++    $field = array(
++      'title' => t('Rate Integration') . ': ' . $widget->title,
++      'field_type' => DS_FIELD_TYPE_FUNCTION,
++      'function' => 'rate_ds',
++      'properties' => array(
++        'default' => array('widget_id' => $wid),
++      )
++    );
++
++    if ( $entity_type == 'node') {
++      $fields['node']['rate_integration_'.$wid] = $field;
++    } elseif  ( $entity_type == 'comment' ) {
++      $fields['comment']['rate_integration_'.$wid] = $field;
++    }
++  }
++
++  return $fields ;
++}
++
++/**
++ * callback for to render the field.
++ * @param @vars
++ */
++function rate_ds($vars) {
++  $entity = $vars['entity'] ;
++  $entity_type = $vars['entity_type'] ;
++
++  $widgets = variable_get(RATE_VAR_WIDGETS, array());
++  $widget_id = $vars['properties']['default']['widget_id'] ;
++
++  // Make sure we should render this
++  if (!isset($widgets[$widget_id])) {
++    return '';
++  }  
++  switch ($entity_type) {
++    case 'node':
++      if (!in_array($entity->type, $widgets[$widget_id]->node_types)) {
++        return '';
++      }
++      break;
++    case 'comment':
++      $node_type = str_replace('comment_node_', '', $entity->node_type);
++      if (!in_array($node_type, $widgets[$widget_id]->comment_types)) {
++        return '';
++      }
++      break;
++  }
++  
++  $entity_id = entity_extract_ids($entity_type, $entity);
++  $entity_id = array_shift($entity_id);
++
++  return rate_generate_widget($widget_id, $entity_type, $entity_id);
++}
