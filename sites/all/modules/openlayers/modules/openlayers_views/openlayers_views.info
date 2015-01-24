@@ -18,9 +18,9 @@ files[] = views/openlayers_views_plugin_row_geometry.inc
 files[] = plugins/layer_types/openlayers_views_vector.inc
 files[] = plugins/layer_types/openlayers_views_image.inc
 
-; Information added by Drupal.org packaging script on 2014-12-08
-version = "7.x-2.0-beta11+17-dev"
+; Information added by Drupal.org packaging script on 2015-01-11
+version = "7.x-2.0-beta11+18-dev"
 core = "7.x"
 project = "openlayers"
-datestamp = "1418059688"
+datestamp = "1420935491"
 

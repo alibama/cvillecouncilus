@@ -157,8 +157,15 @@ Drupal.openlayers = {
     }
 
     sorted.sort(function(a, b) {
-      var x = parseInt(a.weight, 10), y = parseInt(b.weight, 10);
-      return ((a.isBaseLayer && x < y) ? -1 : ((b.isBaseLayer || x > y) ? 1 : 0));
+      if (a.isBaseLayer && b.isBaseLayer) {
+        return parseInt(a.weight) - parseInt(b.weight);
+      }
+      else if (a.isBaseLayer || b.isBaseLayer) {
+        return a.isBaseLayer ? -1 : 1;
+      }
+      else {
+        return parseInt(a.weight) - parseInt(b.weight);
+      }
     });
 
     for (var i = 0; i < sorted.length; ++i) {

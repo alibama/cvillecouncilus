@@ -1,0 +1,10 @@
+--- plugins/views/views_php_handler_field.inc.orig	2012-12-14 00:30:58 +0100
++++ plugins/views/views_php_handler_field.inc	2012-12-14 00:58:55 +0100
+@@ -219,4 +219,7 @@
+       $function($this->view, $this, $this->php_static_variable, $normalized_row, $values, isset($values->{$this->field_alias}) ? $values->{$this->field_alias} : NULL);
+       $value = ob_get_clean();
++
++      // Add the rendered output back to the $values object so it is available in $view->result objects.
++      $values->{$this->field_alias} = $value;
+     }
+     else {

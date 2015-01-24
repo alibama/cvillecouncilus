@@ -1,0 +1,229 @@
+[22-Jan-2015 16:23:44 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:23:57 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:25:36 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:29:52 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:30:35 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:30:55 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:32:07 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:39:17 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:39:28 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 16:39:29 America/New_York] PHP Warning:  Unknown: Input variables exceeded 1000. To increase the limit change max_input_vars in php.ini. in Unknown on line 0
+[22-Jan-2015 17:02:22 America/New_York] PHP Parse error:  syntax error, unexpected '@' in /var/www/html/sites/all/modules/computed_field/computed_field.module(402) : eval()'d code on line 4
+[22-Jan-2015 17:02:22 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:02:22 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:02:22 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:02:22 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:02:22 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:02:22 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:02:22 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:02:22 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:02:22 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:02:22 America/New_York] PHP   9. view->execute() /var/www/html/sites/all/modules/views/includes/view.inc:1192
+[22-Jan-2015 17:02:22 America/New_York] PHP  10. view->_post_execute() /var/www/html/sites/all/modules/views/includes/view.inc:1164
+[22-Jan-2015 17:02:22 America/New_York] PHP  11. views_handler_field_field->post_execute() /var/www/html/sites/all/modules/views/includes/view.inc:744
+[22-Jan-2015 17:02:22 America/New_York] PHP  12. views_handler_field_field->set_items() /var/www/html/sites/all/modules/views/modules/field/views_handler_field_field.inc:683
+[22-Jan-2015 17:02:22 America/New_York] PHP  13. field_view_field() /var/www/html/sites/all/modules/views/modules/field/views_handler_field_field.inc:848
+[22-Jan-2015 17:02:22 America/New_York] PHP  14. _field_invoke_multiple() /var/www/html/modules/field/field.module:882
+[22-Jan-2015 17:02:22 America/New_York] PHP  15. computed_field_field_prepare_view() /var/www/html/modules/field/field.attach.inc:344
+[22-Jan-2015 17:02:22 America/New_York] PHP  16. _computed_field_compute_value() /var/www/html/sites/all/modules/computed_field/computed_field.module:232
+[22-Jan-2015 17:02:45 America/New_York] PHP Parse error:  syntax error, unexpected '"@"' (T_CONSTANT_ENCAPSED_STRING) in /var/www/html/sites/all/modules/computed_field/computed_field.module(402) : eval()'d code on line 4
+[22-Jan-2015 17:02:45 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:02:45 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:02:45 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:02:45 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:02:45 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:02:45 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:02:45 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:02:45 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:02:45 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:02:45 America/New_York] PHP   9. view->execute() /var/www/html/sites/all/modules/views/includes/view.inc:1192
+[22-Jan-2015 17:02:45 America/New_York] PHP  10. view->_post_execute() /var/www/html/sites/all/modules/views/includes/view.inc:1164
+[22-Jan-2015 17:02:45 America/New_York] PHP  11. views_handler_field_field->post_execute() /var/www/html/sites/all/modules/views/includes/view.inc:744
+[22-Jan-2015 17:02:45 America/New_York] PHP  12. views_handler_field_field->set_items() /var/www/html/sites/all/modules/views/modules/field/views_handler_field_field.inc:683
+[22-Jan-2015 17:02:45 America/New_York] PHP  13. field_view_field() /var/www/html/sites/all/modules/views/modules/field/views_handler_field_field.inc:848
+[22-Jan-2015 17:02:45 America/New_York] PHP  14. _field_invoke_multiple() /var/www/html/modules/field/field.module:882
+[22-Jan-2015 17:02:45 America/New_York] PHP  15. computed_field_field_prepare_view() /var/www/html/modules/field/field.attach.inc:344
+[22-Jan-2015 17:02:45 America/New_York] PHP  16. _computed_field_compute_value() /var/www/html/sites/all/modules/computed_field/computed_field.module:232
+[22-Jan-2015 17:03:08 America/New_York] PHP Parse error:  syntax error, unexpected '$carrier' (T_VARIABLE) in /var/www/html/sites/all/modules/computed_field/computed_field.module(402) : eval()'d code on line 4
+[22-Jan-2015 17:03:08 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:03:08 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:03:08 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:03:08 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:03:08 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:03:08 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:03:08 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:03:08 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:03:08 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:03:08 America/New_York] PHP   9. view->execute() /var/www/html/sites/all/modules/views/includes/view.inc:1192
+[22-Jan-2015 17:03:08 America/New_York] PHP  10. view->_post_execute() /var/www/html/sites/all/modules/views/includes/view.inc:1164
+[22-Jan-2015 17:03:08 America/New_York] PHP  11. views_handler_field_field->post_execute() /var/www/html/sites/all/modules/views/includes/view.inc:744
+[22-Jan-2015 17:03:08 America/New_York] PHP  12. views_handler_field_field->set_items() /var/www/html/sites/all/modules/views/modules/field/views_handler_field_field.inc:683
+[22-Jan-2015 17:03:08 America/New_York] PHP  13. field_view_field() /var/www/html/sites/all/modules/views/modules/field/views_handler_field_field.inc:848
+[22-Jan-2015 17:03:08 America/New_York] PHP  14. _field_invoke_multiple() /var/www/html/modules/field/field.module:882
+[22-Jan-2015 17:03:08 America/New_York] PHP  15. computed_field_field_prepare_view() /var/www/html/modules/field/field.attach.inc:344
+[22-Jan-2015 17:03:08 America/New_York] PHP  16. _computed_field_compute_value() /var/www/html/sites/all/modules/computed_field/computed_field.module:232
+[22-Jan-2015 17:10:19 America/New_York] PHP Parse error:  syntax error, unexpected '.' in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc(207) : runtime-created function on line 2
+[22-Jan-2015 17:10:19 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:10:19 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:10:19 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:10:19 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:10:19 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:10:19 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:10:19 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:10:19 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:10:19 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:10:19 America/New_York] PHP   9. views_php_handler_field->pre_render() /var/www/html/sites/all/modules/views/includes/view.inc:1239
+[22-Jan-2015 17:10:19 America/New_York] PHP  10. create_function() /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc:207
+[22-Jan-2015 17:10:19 America/New_York] PHP Fatal error:  Function name must be a string in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc on line 224
+[22-Jan-2015 17:10:19 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:10:19 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:10:19 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:10:19 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:10:19 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:10:19 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:10:19 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:10:19 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:10:19 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:10:19 America/New_York] PHP   9. views_plugin_display->render() /var/www/html/sites/all/modules/views/includes/view.inc:1264
+[22-Jan-2015 17:10:19 America/New_York] PHP  10. theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2605
+[22-Jan-2015 17:10:19 America/New_York] PHP  11. template_preprocess_views_view() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:10:19 America/New_York] PHP  12. views_plugin_style->render() /var/www/html/sites/all/modules/views/theme/theme.inc:49
+[22-Jan-2015 17:10:19 America/New_York] PHP  13. views_plugin_style->render_grouping() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:325
+[22-Jan-2015 17:10:19 America/New_York] PHP  14. views_plugin_style->render_fields() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:430
+[22-Jan-2015 17:10:19 America/New_York] PHP  15. views_handler_field->theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:525
+[22-Jan-2015 17:10:19 America/New_York] PHP  16. theme() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1515
+[22-Jan-2015 17:10:19 America/New_York] PHP  17. template_preprocess_views_view_field() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:10:19 America/New_York] PHP  18. views_handler_field->advanced_render() /var/www/html/sites/all/modules/views/theme/theme.inc:354
+[22-Jan-2015 17:10:19 America/New_York] PHP  19. views_php_handler_field->render() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1041
+[22-Jan-2015 17:10:31 America/New_York] PHP Parse error:  syntax error, unexpected '.' in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc(207) : runtime-created function on line 2
+[22-Jan-2015 17:10:31 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:10:31 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:10:31 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:10:31 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:10:31 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:10:31 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:10:31 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:10:31 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:10:31 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:10:31 America/New_York] PHP   9. views_php_handler_field->pre_render() /var/www/html/sites/all/modules/views/includes/view.inc:1239
+[22-Jan-2015 17:10:31 America/New_York] PHP  10. create_function() /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc:207
+[22-Jan-2015 17:10:31 America/New_York] PHP Fatal error:  Function name must be a string in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc on line 224
+[22-Jan-2015 17:10:31 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:10:31 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:10:31 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:10:31 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:10:31 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:10:31 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:10:31 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:10:31 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:10:31 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:10:31 America/New_York] PHP   9. views_plugin_display->render() /var/www/html/sites/all/modules/views/includes/view.inc:1264
+[22-Jan-2015 17:10:31 America/New_York] PHP  10. theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2605
+[22-Jan-2015 17:10:31 America/New_York] PHP  11. template_preprocess_views_view() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:10:31 America/New_York] PHP  12. views_plugin_style->render() /var/www/html/sites/all/modules/views/theme/theme.inc:49
+[22-Jan-2015 17:10:31 America/New_York] PHP  13. views_plugin_style->render_grouping() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:325
+[22-Jan-2015 17:10:31 America/New_York] PHP  14. views_plugin_style->render_fields() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:430
+[22-Jan-2015 17:10:31 America/New_York] PHP  15. views_handler_field->theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:525
+[22-Jan-2015 17:10:31 America/New_York] PHP  16. theme() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1515
+[22-Jan-2015 17:10:31 America/New_York] PHP  17. template_preprocess_views_view_field() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:10:31 America/New_York] PHP  18. views_handler_field->advanced_render() /var/www/html/sites/all/modules/views/theme/theme.inc:354
+[22-Jan-2015 17:10:31 America/New_York] PHP  19. views_php_handler_field->render() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1041
+[22-Jan-2015 17:11:19 America/New_York] PHP Parse error:  syntax error, unexpected '.' in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc(207) : runtime-created function on line 2
+[22-Jan-2015 17:11:19 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:11:19 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:11:19 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:11:19 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:11:19 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:11:19 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:11:19 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:11:19 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:11:19 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:11:19 America/New_York] PHP   9. views_php_handler_field->pre_render() /var/www/html/sites/all/modules/views/includes/view.inc:1239
+[22-Jan-2015 17:11:19 America/New_York] PHP  10. create_function() /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc:207
+[22-Jan-2015 17:11:19 America/New_York] PHP Fatal error:  Function name must be a string in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc on line 224
+[22-Jan-2015 17:11:19 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:11:19 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:11:19 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:11:19 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:11:19 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:11:19 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:11:19 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:11:19 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:11:19 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:11:19 America/New_York] PHP   9. views_plugin_display->render() /var/www/html/sites/all/modules/views/includes/view.inc:1264
+[22-Jan-2015 17:11:19 America/New_York] PHP  10. theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2605
+[22-Jan-2015 17:11:19 America/New_York] PHP  11. template_preprocess_views_view() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:11:19 America/New_York] PHP  12. views_plugin_style->render() /var/www/html/sites/all/modules/views/theme/theme.inc:49
+[22-Jan-2015 17:11:19 America/New_York] PHP  13. views_plugin_style->render_grouping() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:325
+[22-Jan-2015 17:11:19 America/New_York] PHP  14. views_plugin_style->render_fields() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:430
+[22-Jan-2015 17:11:19 America/New_York] PHP  15. views_handler_field->theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:525
+[22-Jan-2015 17:11:19 America/New_York] PHP  16. theme() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1515
+[22-Jan-2015 17:11:19 America/New_York] PHP  17. template_preprocess_views_view_field() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:11:19 America/New_York] PHP  18. views_handler_field->advanced_render() /var/www/html/sites/all/modules/views/theme/theme.inc:354
+[22-Jan-2015 17:11:19 America/New_York] PHP  19. views_php_handler_field->render() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1041
+[22-Jan-2015 17:11:30 America/New_York] PHP Parse error:  syntax error, unexpected '.' in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc(207) : runtime-created function on line 2
+[22-Jan-2015 17:11:30 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:11:30 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:11:30 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:11:30 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:11:30 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:11:30 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:11:30 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:11:30 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:11:30 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:11:30 America/New_York] PHP   9. views_php_handler_field->pre_render() /var/www/html/sites/all/modules/views/includes/view.inc:1239
+[22-Jan-2015 17:11:30 America/New_York] PHP  10. create_function() /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc:207
+[22-Jan-2015 17:11:30 America/New_York] PHP Fatal error:  Function name must be a string in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc on line 224
+[22-Jan-2015 17:11:30 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:11:30 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:11:30 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:11:30 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:11:30 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:11:30 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:11:30 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:11:30 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:11:30 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:11:30 America/New_York] PHP   9. views_plugin_display->render() /var/www/html/sites/all/modules/views/includes/view.inc:1264
+[22-Jan-2015 17:11:30 America/New_York] PHP  10. theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2605
+[22-Jan-2015 17:11:30 America/New_York] PHP  11. template_preprocess_views_view() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:11:30 America/New_York] PHP  12. views_plugin_style->render() /var/www/html/sites/all/modules/views/theme/theme.inc:49
+[22-Jan-2015 17:11:30 America/New_York] PHP  13. views_plugin_style->render_grouping() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:325
+[22-Jan-2015 17:11:30 America/New_York] PHP  14. views_plugin_style->render_fields() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:430
+[22-Jan-2015 17:11:30 America/New_York] PHP  15. views_handler_field->theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:525
+[22-Jan-2015 17:11:30 America/New_York] PHP  16. theme() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1515
+[22-Jan-2015 17:11:30 America/New_York] PHP  17. template_preprocess_views_view_field() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:11:30 America/New_York] PHP  18. views_handler_field->advanced_render() /var/www/html/sites/all/modules/views/theme/theme.inc:354
+[22-Jan-2015 17:11:30 America/New_York] PHP  19. views_php_handler_field->render() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1041
+[22-Jan-2015 17:13:46 America/New_York] PHP Parse error:  syntax error, unexpected '.' in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc(207) : runtime-created function on line 4
+[22-Jan-2015 17:13:46 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:13:46 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:13:46 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:13:46 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:13:46 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:13:46 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:13:46 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:13:46 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:13:46 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:13:46 America/New_York] PHP   9. views_php_handler_field->pre_render() /var/www/html/sites/all/modules/views/includes/view.inc:1239
+[22-Jan-2015 17:13:46 America/New_York] PHP  10. create_function() /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc:207
+[22-Jan-2015 17:13:46 America/New_York] PHP Fatal error:  Function name must be a string in /var/www/html/sites/all/modules/views_php/plugins/views/views_php_handler_field.inc on line 224
+[22-Jan-2015 17:13:46 America/New_York] PHP Stack trace:
+[22-Jan-2015 17:13:46 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[22-Jan-2015 17:13:46 America/New_York] PHP   2. menu_execute_active_handler() /var/www/html/index.php:21
+[22-Jan-2015 17:13:46 America/New_York] PHP   3. call_user_func_array() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:13:46 America/New_York] PHP   4. views_ui_build_preview() /var/www/html/includes/menu.inc:517
+[22-Jan-2015 17:13:46 America/New_York] PHP   5. views_ui_preview() /var/www/html/sites/all/modules/views/includes/admin.inc:954
+[22-Jan-2015 17:13:46 America/New_York] PHP   6. view->preview() /var/www/html/sites/all/modules/views/includes/admin.inc:176
+[22-Jan-2015 17:13:46 America/New_York] PHP   7. views_plugin_display->preview() /var/www/html/sites/all/modules/views/includes/view.inc:1368
+[22-Jan-2015 17:13:46 America/New_York] PHP   8. view->render() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2677
+[22-Jan-2015 17:13:46 America/New_York] PHP   9. views_plugin_display->render() /var/www/html/sites/all/modules/views/includes/view.inc:1264
+[22-Jan-2015 17:13:46 America/New_York] PHP  10. theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_display.inc:2605
+[22-Jan-2015 17:13:46 America/New_York] PHP  11. template_preprocess_views_view() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:13:46 America/New_York] PHP  12. views_plugin_style->render() /var/www/html/sites/all/modules/views/theme/theme.inc:49
+[22-Jan-2015 17:13:46 America/New_York] PHP  13. views_plugin_style->render_grouping() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:325
+[22-Jan-2015 17:13:46 America/New_York] PHP  14. views_plugin_style->render_fields() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:430
+[22-Jan-2015 17:13:46 America/New_York] PHP  15. views_handler_field->theme() /var/www/html/sites/all/modules/views/plugins/views_plugin_style.inc:525
+[22-Jan-2015 17:13:46 America/New_York] PHP  16. theme() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1515
+[22-Jan-2015 17:13:46 America/New_York] PHP  17. template_preprocess_views_view_field() /var/www/html/includes/theme.inc:1125
+[22-Jan-2015 17:13:46 America/New_York] PHP  18. views_handler_field->advanced_render() /var/www/html/sites/all/modules/views/theme/theme.inc:354
+[22-Jan-2015 17:13:46 America/New_York] PHP  19. views_php_handler_field->render() /var/www/html/sites/all/modules/views/handlers/views_handler_field.inc:1041
