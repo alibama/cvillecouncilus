@@ -1,0 +1,43 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ *
+ * @return array
+ */
+function subscriptions_rules_schema() {
+
+  $schema['subscriptions_rules_anonymous'] = array(
+    'fields'          => array(
+      'sid'           => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'module'        => array('type' => 'varchar', 'length' => '64', 'not null' => FALSE),
+      'field'         => array('type' => 'varchar', 'length' => '32', 'not null' => FALSE),
+      'value'         => array('type' => 'varchar', 'length' => '237', 'not null' => FALSE),
+      'recipient_uid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'send_interval' => array('type' => 'int', 'not null' => FALSE),
+      'author_uid'    => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'send_updates'  => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
+      'send_comments' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
+      'session_id' => array(
+        'description' => "The user's session id as stored in the session table.",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key'     => array('sid'),
+    'indexes'         => array(
+      'module'        => array('module', 'field', 'value'),
+      'recipient_uid' => array('recipient_uid')),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function subscriptions_rules_install() {
+  db_query("UPDATE {system} SET weight = -1 WHERE name = 'subscriptions_rules'"); // To run before flag
+}

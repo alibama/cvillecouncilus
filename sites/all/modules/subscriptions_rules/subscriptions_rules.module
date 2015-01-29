@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * Implements hook_user_login().
+ */
+function subscriptions_rules_user_login(&$edit, &$account) {
+  module_load_include('inc', 'subscriptions_rules', 'subscriptions_rules.rules');
+
+  // Migrate anonymous subscriptions to this user's account.
+  if (module_exists('session_api') && ($sid = subscriptions_rules_get_anon_sid())) {
+    $subscriptions = db_select('subscriptions_rules_anonymous', 'sb')
+      ->fields('sb')
+      ->condition('session_id', $sid)
+      ->execute()
+      ->fetchAll();
+    foreach ($subscriptions as $args) {
+      $remove_args = $new_args = array(
+        $args->module,
+        $args->field,
+        $args->value,
+        $args->author_uid,
+        $account->uid,
+        $args->send_interval,
+        $args->send_updates,
+        $args->send_comments,
+        $args->session_id,
+      );
+
+      subscriptions_rules_add_user_content_normal_user_callback($new_args);
+
+      // Remove the subscriptions
+      $remove_args[4] = $args->recipient_uid;
+      subscriptions_rules_anonymous_remove($remove_args);
+    }
+  }
+}
+
+/**
+ * Implement of hook_form_alter
+ */
+function subscriptions_rules_form_subscriptions_settings_form_alter(&$form, &$form_state, $form_id) {
+  // Check if site is disabling email sending
+  if ($form['mail_settings']['subscriptions_cron_percent']['#default_value'] == 0 && variable_get('subscriptions_cron_percent_backup', 0)) {
+    drupal_get_messages('error');
+    $form['mail_settings']['subscriptions_cron_percent']['#attributes'] = array();
+    $form['mail_settings']['subscriptions_cron_percent']['#default_value'] = variable_get('subscriptions_cron_percent_backup', 0);
+    $form['#submit'][] = 'subscriptions_rules_form_subscriptions_settings_form_alter_submit';
+  }
+}
+
+function subscriptions_rules_form_subscriptions_settings_form_alter_submit($form, &$form_state) {
+  module_load_include('inc', 'subscriptions_rules', 'subscriptions_rules.rules');
+  subscriptions_rules_stop_sending_callback();
+}
+
+function subscriptions_rules_get_anon_sid($user = FALSE) {
+  if (!empty($user->uid)) {
+    return FALSE;
+  }
+
+  $session_id = &drupal_static(__FUNCTION__, -2);
+  if (module_exists('session_api') && session_api_available() && $session_id == -2) {
+    $session_id = session_api_get_sid(TRUE);
+  }
+
+  if ($session_id <> -2 && empty($session_id)) {
+    watchdog('subscriptions_rules', t('We couldn\'t get session ID for this user to store subscriptions settings'), array(), WATCHDOG_ERROR);
+    return FALSE;
+  }
+
+  return $session_id;
+}
