@@ -34,7 +34,7 @@
     <meta name="selected-link" value="repo_source" data-pjax-transient>
       <meta name="google-analytics" content="UA-3769691-2">
 
-    <meta content="collector.githubapp.com" name="octolytics-host" /><meta content="collector-cdn.github.com" name="octolytics-script-host" /><meta content="github" name="octolytics-app-id" /><meta content="A8EB460B:2BE8:6DA58E:54CC5111" name="octolytics-dimension-request_id" />
+    <meta content="collector.githubapp.com" name="octolytics-host" /><meta content="collector-cdn.github.com" name="octolytics-script-host" /><meta content="github" name="octolytics-app-id" /><meta content="A8EB460B:2BEE:5C78466:54CC5142" name="octolytics-dimension-request_id" />
     
     <meta content="Rails, view, blob#show" name="analytics-event" />
 
@@ -44,7 +44,7 @@
 
 
     <meta content="authenticity_token" name="csrf-param" />
-<meta content="8SxzJ2rXgeVDSa8SeDEVtE+19uuoWr8Tv5kE4c8gPsJJDYdT7MmaqRQrOSy2yF46eUaAhh+OAP0dA4H8abOWag==" name="csrf-token" />
+<meta content="KARRNUxcBlPUFRjEJA+qqdwh7htBs1SsovqbY2ZdB3ItgancjNrVgNNOuYHPqgkI33MorpeG8yxBsHtjdAwTiw==" name="csrf-token" />
 
     <link href="https://assets-cdn.github.com/assets/github-e3321d79480f0738576ff81cb2f3f717fdbb0bf35ea5938c30005a3349371133.css" media="all" rel="stylesheet" type="text/css" />
     <link href="https://assets-cdn.github.com/assets/github2-dde0fad02eec63beeeea358c4fcea2f224cb2d4fcf094f9cf9d9dd6bd5c5eece.css" media="all" rel="stylesheet" type="text/css" />
@@ -5126,7 +5126,7 @@
     </a>
 
     <ul class="site-footer-links">
-      <li>&copy; 2015 <span title="0.04648s from github-fe118-cp1-prd.iad.github.net">GitHub</span>, Inc.</li>
+      <li>&copy; 2015 <span title="0.04125s from github-fe134-cp1-prd.iad.github.net">GitHub</span>, Inc.</li>
         <li><a href="/site/terms">Terms</a></li>
         <li><a href="/site/privacy">Privacy</a></li>
         <li><a href="/security">Security</a></li>
