@@ -12817,3 +12817,13 @@
 [02-Feb-2015 18:15:07 America/New_York] PHP   6. call_user_func_array() /var/www/html/includes/module.inc:866
 [02-Feb-2015 18:15:07 America/New_York] PHP   7. gaservice_exit() /var/www/html/includes/module.inc:866
 [02-Feb-2015 18:15:07 America/New_York] PHP   8. gaservice_call_ga() /var/www/html/sites/all/modules/gaservice/gaservice.module:52
+[03-Feb-2015 10:40:42 America/New_York] PHP Fatal error:  Call to undefined function drupal_get_path() in /var/www/html/sites/all/modules/gaservice/gaservice.module on line 71
+[03-Feb-2015 10:40:42 America/New_York] PHP Stack trace:
+[03-Feb-2015 10:40:42 America/New_York] PHP   1. {main}() /var/www/html/index.php:0
+[03-Feb-2015 10:40:42 America/New_York] PHP   2. drupal_bootstrap() /var/www/html/index.php:20
+[03-Feb-2015 10:40:42 America/New_York] PHP   3. _drupal_bootstrap_page_cache() /var/www/html/includes/bootstrap.inc:2252
+[03-Feb-2015 10:40:42 America/New_York] PHP   4. bootstrap_invoke_all() /var/www/html/includes/bootstrap.inc:2422
+[03-Feb-2015 10:40:42 America/New_York] PHP   5. module_invoke() /var/www/html/includes/bootstrap.inc:1092
+[03-Feb-2015 10:40:42 America/New_York] PHP   6. call_user_func_array() /var/www/html/includes/module.inc:866
+[03-Feb-2015 10:40:42 America/New_York] PHP   7. gaservice_exit() /var/www/html/includes/module.inc:866
+[03-Feb-2015 10:40:42 America/New_York] PHP   8. gaservice_call_ga() /var/www/html/sites/all/modules/gaservice/gaservice.module:52
