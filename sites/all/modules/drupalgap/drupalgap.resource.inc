@@ -322,6 +322,7 @@ function _drupalgap_resource_system_site_settings() {
     'site_name',
     'theme_default',
     'user_pictures',
+    'user_picture_style',
     'user_email_verification',
     'user_register',
   );

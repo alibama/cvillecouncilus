@@ -10290,9 +10290,9 @@ function system_dashboard_page() {
       '</h4>'
     };
     content.welcome = {
-      markup: '<h2 style="text-align: center;">Welcome to DrupalGap</h2>' +
+      markup: '<h2 style="text-align: center;">Welcome to Cville Council Us</h2>' +
         '<p style="text-align: center;">' +
-          'The open source application development kit for Drupal!' +
+          'Vote For You' +
         '</p>'
     };
     if (drupalgap.settings.logo) {
