@@ -1,0 +1,73 @@
+html, html a {
+-webkit-font-smoothing: antialiased;
+text-shadow: 1px 1px 1px rgba(0,0,0,0.004);
+font-kerning: normal;
+}
+.ui-page, body, input, select, textarea, button, .ui-btn, .ui-listview>li h1, .ui-listview>li h2, .ui-listview>li h3, .ui-listview>li h4, .ui-listview>li h5, .ui-listview>li h6, .ui-btn, label.ui-btn, .ui-page-theme-b a, html .ui-bar-b a, html .ui-page-theme-b a, html body .ui-group-theme-b a {
+font-family: "Roboto", sans-serif;
+font-weight: 300;
+}
+body, input, select, textarea, button, .ui-btn {
+line-height: auto;
+}
+h1,h2,h3,h4 {
+	font-weight: normal;
+	color: #696969;
+}
+body .ui-page-theme-a, body {
+	color: #696969;
+	text-shadow: none;
+	background: #FFF;
+}
+.region_header .ui-panel {
+	top: 44px;
+}
+.region_header {
+	background: #FFFFFF;
+	box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+	border-bottom: 2px solid #B6DB49;
+}
+.region_header a.ui-btn {
+border: 0;
+background: #FFF;
+}
+.ui-panel {
+	color: #696969;
+	background-color: #FFFFFF;
+}
+body div[data-role="header"] div[data-role="controlgroup"] .ui-controlgroup-controls .ui-btn-icon-notext {
+padding: 3px 23px 3px 5px;
+border: 1px solid #ccc;
+border-radius: 14px;
+margin: 3px 6px 0 0px;
+width: 0px;
+}
+html .ui-bar-b .ui-panel .ui-btn, html .ui-body-b .ui-panel .ui-btn {
+	text-shadow: none;
+	color: #696969;
+	font-size: 12px;
+	font-weight: normal;
+	padding: 12px 0 12px 36px;
+	border-color: rgba(0,0,0,0.1);
+}
+html .ui-bar-b .ui-panel .ui-btn:after {
+	left: 0.5em;
+}
+.ui-panel a.ui-btn:hover {
+	color: #ffffff;
+	background-color: #B6DB49;
+}
+body .ui-page-theme-a .ui-bar-inherit {
+	background: #F9F9F9;
+}
+h1.ui-title {
+	color: #696969;
+	font-weight: normal;
+	font-size: 14px;
+}
+.ui-page-theme-b .ui-btn.ui-btn-active, html .ui-bar-b .ui-btn.ui-btn-active, html .ui-body-b .ui-btn.ui-btn-active, html body .ui-group-theme-b .ui-btn.ui-btn-active, html head+body .ui-btn.ui-btn-b.ui-btn-active, .ui-page-theme-b .ui-checkbox-on:after, html .ui-bar-b .ui-checkbox-on:after, html .ui-body-b .ui-checkbox-on:after, html body .ui-group-theme-b .ui-checkbox-on:after, .ui-btn.ui-checkbox-on.ui-btn-b:after, .ui-page-theme-b .ui-flipswitch-active, html .ui-bar-b .ui-flipswitch-active, html .ui-body-b .ui-flipswitch-active, html body .ui-group-theme-b .ui-flipswitch-active, html body .ui-flipswitch.ui-bar-b.ui-flipswitch-active, .ui-page-theme-b .ui-slider-track .ui-btn-active, html .ui-bar-b .ui-slider-track .ui-btn-active, html .ui-body-b .ui-slider-track .ui-btn-active, html body .ui-group-theme-b .ui-slider-track .ui-btn-active, html body div.ui-slider-track.ui-body-b .ui-btn-active {
+background-color: #B6DB49;
+border-color: #B6DB49;
+color: #fff;
+text-shadow: 0 1px 0 #08b;
+}
