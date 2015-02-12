@@ -1,0 +1,21 @@
+name = "DrupalGap Mobile notifications"
+description = "Send notifications to mobile devices through Push Notifications module"
+package = Mobile
+core = 7.x
+
+dependencies[] = push_notifications
+dependencies[] = entityreference
+dependencies[] = list
+dependencies[] = text
+dependencies[] = views
+dependencies[] = views_json
+
+files[] = mobile_notifications.install
+files[] = mobile_notifications.module
+
+; Information added by Drupal.org packaging script on 2014-10-20
+version = "7.x-1.0"
+core = "7.x"
+project = "drupalgap_mobile_notifications"
+datestamp = "1413841880"
+

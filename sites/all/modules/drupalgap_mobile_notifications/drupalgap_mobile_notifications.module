@@ -1,0 +1,253 @@
+<?php
+
+/**
+ * Implements hook_views_api().
+ */
+function drupalgap_mobile_notifications_views_api($module = NULL, $api = NULL) {
+  return array(
+		"api" => "3.0",
+		'path' => drupal_get_path('module', 'drupalgap_mobile_notifications') . '/includes',
+  );
+}
+
+/**
+ * Implements hook_node_info()
+ */
+function drupalgap_mobile_notifications_node_info() {
+	return array(
+		'drupalgap_mobile_notifications' => array(
+				'name' => t('Mobile notification'),
+				'base' => 'drupalgap_mobile_notifications',
+				'description' => t('You can send push notifications to mobile devices'),
+				'has_title' => TRUE,
+				'title_label' => t('Title')
+		 )
+	);
+}
+
+/**
+ * Implement hook_form()
+ */
+function drupalgap_mobile_notifications_form($node, $form_state) {
+    return node_content_form($node, $form_state);
+}
+
+
+/**
+ * Implements of hook_menu().
+ */
+function drupalgap_mobile_notifications_menu(){
+  $items = array();
+
+  $items['drupalgap_mobile_notifications'] = array(
+    'type' => MENU_NORMAL_ITEM,
+    'title' => 'Send Push Notifications',
+    'access arguments' => array('send push notifications'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('drupalgap_mobile_notifications_push_notifications_form'),
+    'description' => 'Send Push Notifications.',
+  );
+  
+  $items['ver_campos'] = array(
+		'type' => MENU_NORMAL_ITEM,
+    'title' => 'Ver campos',
+    'page callback' => 'ver_campos',
+    'access callback'	=> TRUE,
+  );
+  
+  return $items;
+}
+
+
+/**
+ * Send test message
+ */
+function drupalgap_mobile_notifications_push_notifications_form($form,&$form_state){
+	$form['title'] = array(
+		'#type'						=>	'textfield',
+		'#title'					=>	'Message title',
+		'#default_value'	=> 	'Test message',
+	);
+	
+	$form['message'] = array(
+		'#type'						=>	'textfield',
+		'#title'					=>	'Message body',
+		'#default_value'	=> 	'Test message body',
+	);
+	
+	$form['submit'] = array(
+		'#type'						=>	'submit',
+		'#value'					=>	'Submit',
+	);
+	
+	return $form;
+}
+
+function drupalgap_mobile_notifications_push_notifications_form_submit($form,&$form_state){
+	$tokens =  push_notifications_get_tokens($type_id = 1, $language = FALSE, $raw = FALSE);
+	$payload = array();
+	$payload['title'] = $form_state['values']['title'];
+	$payload['message'] = $form_state['values']['message'];
+	return drupalgap_mobile_notifications_send_notification($tokens, $payload);
+}
+
+
+
+function drupalgap_mobile_notifications_form_alter(&$form, &$form_state, $form_id){
+	if($form_id=='drupalgap_mobile_notifications_node_form'){
+		$roles = array();
+		foreach(user_roles() as $rol){
+			$roles[$rol] = $rol;
+		}
+		array_unshift($roles,t('All roles'));
+		$form['mobile_roles'][LANGUAGE_NONE]['#options'] = $roles;
+		$form['mobile_roles'][LANGUAGE_NONE]['#default_value'] = array('0');
+	}
+}
+
+function drupalgap_mobile_notifications_node_submit($node, $form, &$form_state){
+	if($form_state['clicked_button']['#value']=='Save' && $node->type=='drupalgap_mobile_notifications'){
+		$roles = array();
+		foreach($node->mobile_roles[LANGUAGE_NONE] as $rol){
+			$roles[$rol['value']] = $rol['value'];
+		}
+		$tokens = drupalgap_mobile_notifications_get_tokens($roles);
+		$payload = array();
+		$payload['title'] = $node->title;
+		$payload['message'] = $node->mobile_message[LANGUAGE_NONE][0]['value'];
+		return drupalgap_mobile_notifications_send_notification($tokens, $payload);
+	}
+}
+
+function drupalgap_mobile_notifications_get_tokens($roles) {
+  $query = db_select('push_notifications_tokens', 'pnt');
+  $query->fields('pnt', array('token','uid'));
+  
+  if(count($roles) > 0 && !array_key_exists(0,$roles) ){
+		if( count($roles) ==1 && array_key_exists('anonymous user',$roles) ){
+			$query->condition('pnt.uid', 0, '=');
+		}
+		elseif( !array_key_exists('anonymous user',$roles) )   {
+			$query->condition('pnt.uid', 0, '>');
+		}
+	}
+  $result = $query->execute();
+
+	$recipients = array();
+	foreach ($result as $record) {
+		$recipients[] = array('token'=>$record->token,'uid'=>$record->uid) ;
+	}
+
+	$filtered_recipients = array();
+  if(count($roles) > 0 && !array_key_exists(0,$roles) ){
+		if( count($roles) ==1 && array_key_exists('anonymous user',$roles) ){
+			$filtered_recipients = $recipients;
+		}
+		else {
+			foreach($recipients as $recipient){
+				if($recipient['uid'] == 0){
+					$filtered_recipients[] = array('token' => $recipient['token']);
+				}
+				else {
+					foreach( user_load($recipient['uid'])->roles as $user_rol ){
+						if( key_exists($user_rol,$roles) ){
+							$filtered_recipients[] = array('token' => $recipient['token']);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	else {
+		$filtered_recipients = $recipients;
+	}
+	
+	$recipients = array();
+	foreach($filtered_recipients as $recipient){
+		$recipients[] = $recipient['token'];
+	}
+	return $recipients;
+}
+
+function drupalgap_mobile_notifications_send_notification($tokens, $payload){
+	// Define an array of result values.
+  $result = array(
+    'count_attempted' => 0,
+    'count_success' => 0,
+    'success' => 0,
+    'message' => '',
+  );
+
+  // Define the header.
+  $headers = array();
+  $headers[] = 'Content-Type:application/json';
+  $headers[] = 'Authorization:key=' . variable_get('push_notifications_gcm_api_key', '');
+
+  // Check of many token bundles can be build.
+  $token_bundles = ceil(count($tokens) / 1000);
+  $result['count_attempted'] = count($tokens);
+
+  // Send a push notification to every recipient.
+  for ($i = 0; $i < $token_bundles; $i++) {
+    // Create a token bundle.
+    $bundle_tokens = array_slice($tokens, $i * 1000, 1000, FALSE);
+
+    // Convert the payload into the correct format for C2DM payloads.
+    // Prefill an array with values from other modules first.
+    $data = array();
+    foreach ($payload as $key => $value) {
+      if ($key != 'alert') {
+        $data['data'][$key] = $value;
+      }
+    }
+    // Fill the default values required for each payload.
+    $data['registration_ids'] = $bundle_tokens;
+    $data['collapse_key'] = (string) time();
+    $data['data']['title'] = $payload['title'];
+    $data['data']['message'] = $payload['message'];
+
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, PUSH_NOTIFICATIONS_GCM_SERVER_POST_URL);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+    curl_setopt($curl, CURLOPT_POST, TRUE);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+    $response_raw = curl_exec($curl);
+    $info = curl_getinfo($curl);
+    curl_close($curl);
+
+    $response = FALSE;
+    if (isset($response_raw)) {
+      $response = json_decode($response_raw);
+    }
+
+    // If Google's server returns a reply, but that reply includes an error,
+    // log the error message.
+    if ($info['http_code'] == 200 && (!empty($response->failure))) {
+      watchdog('push_notifications', "Google's Server returned an error: " . $response_raw, NULL, WATCHDOG_ERROR);
+
+      // Analyze the failure.
+      foreach ($response->results as $token_index => $message_result) {
+        if (!empty($message_result->error)) {
+          // If the device token is invalid or not registered (anymore because the user
+          // has uninstalled the application), remove this device token.
+          if ($message_result->error == 'NotRegistered' || $message_result->error == 'InvalidRegistration') {
+            push_notifications_purge_token($bundle_tokens[$token_index]);
+            watchdog('push_notifications', 'GCM token not valid anymore. Removing token ' . $bundle_tokens[$token_index]);
+          }
+        }
+      }
+    }
+
+    // Count the successful sent push notifications if there are any.
+    if ($info['http_code'] == 200 && !empty($response->success)) {
+      $result['count_success'] += $response->success;
+    }
+  }
+
+  $result['message'] = t('Successfully sent !count_success Android push messages (attempted to send !count messages).', array('!count_success' => $result['count_success'], '!count' => $result['count_attempted']));
+  $result['success'] = TRUE;
+  return $result;
+}
