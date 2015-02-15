@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the notifications_views_rules_taxonomy_terms feature.
+ */
+
+include_once 'notifications_views_rules_taxonomy_terms.features.inc';
