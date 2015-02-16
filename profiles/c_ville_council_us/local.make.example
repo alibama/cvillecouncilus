@@ -1,0 +1,91 @@
+; c_ville_council_us make file for local development
+core = "7.x"
+api = "2"
+
+projects[drupal][version] = "7.x"
+; include the d.o. profile base
+includes[] = "drupal-org.make"
+
+; +++++ Libraries +++++
+
+; jquery.validate
+libraries[jquery.validate][directory_name] = "jquery.validate"
+libraries[jquery.validate][type] = "library"
+libraries[jquery.validate][destination] = "libraries"
+libraries[jquery.validate][download][type] = "get"
+libraries[jquery.validate][download][url] = "" ; TODO add download URI
+
+; heatmap.js
+libraries[heatmap.js][directory_name] = "heatmap.js"
+libraries[heatmap.js][type] = "library"
+libraries[heatmap.js][destination] = "libraries"
+libraries[heatmap.js][download][type] = "get"
+libraries[heatmap.js][download][url] = "" ; TODO add download URI
+
+; jstorage
+libraries[jstorage][directory_name] = "jstorage"
+libraries[jstorage][type] = "library"
+libraries[jstorage][destination] = "libraries"
+libraries[jstorage][download][type] = "get"
+libraries[jstorage][download][url] = "" ; TODO add download URI
+
+; oauth2-server-php
+libraries[oauth2-server-php][directory_name] = "oauth2-server-php"
+libraries[oauth2-server-php][type] = "library"
+libraries[oauth2-server-php][destination] = "libraries"
+libraries[oauth2-server-php][download][type] = "get"
+libraries[oauth2-server-php][download][url] = "" ; TODO add download URI
+
+; lib
+libraries[lib][directory_name] = "lib"
+libraries[lib][type] = "library"
+libraries[lib][destination] = "libraries"
+libraries[lib][download][type] = "get"
+libraries[lib][download][url] = "" ; TODO add download URI
+
+; spyc
+libraries[spyc][directory_name] = "spyc"
+libraries[spyc][type] = "library"
+libraries[spyc][destination] = "libraries"
+libraries[spyc][download][type] = "get"
+libraries[spyc][download][url] = "" ; TODO add download URI
+
+; openlayers
+libraries[openlayers][directory_name] = "openlayers"
+libraries[openlayers][type] = "library"
+libraries[openlayers][destination] = "libraries"
+libraries[openlayers][download][type] = "get"
+libraries[openlayers][download][url] = "" ; TODO add download URI
+
+; phpmailer
+libraries[phpmailer][directory_name] = "phpmailer"
+libraries[phpmailer][type] = "library"
+libraries[phpmailer][destination] = "libraries"
+libraries[phpmailer][download][type] = "get"
+libraries[phpmailer][download][url] = "" ; TODO add download URI
+
+; geophp
+libraries[geophp][directory_name] = "geophp"
+libraries[geophp][type] = "library"
+libraries[geophp][destination] = "libraries"
+libraries[geophp][download][type] = "get"
+libraries[geophp][download][url] = "" ; TODO add download URI
+
+; tinybox
+libraries[tinybox][directory_name] = "tinybox"
+libraries[tinybox][type] = "library"
+libraries[tinybox][destination] = "libraries"
+libraries[tinybox][download][type] = "get"
+libraries[tinybox][download][url] = "" ; TODO add download URI
+
+; autopager
+libraries[autopager][directory_name] = "autopager"
+libraries[autopager][type] = "library"
+libraries[autopager][destination] = "libraries"
+libraries[autopager][download][type] = "get"
+libraries[autopager][download][url] = "" ; TODO add download URI
+
+; +++++ Patches +++++
+
+projects[rate][patch][] = "rate-ds-1069906-39.patch" ; TODO add path to patch
+

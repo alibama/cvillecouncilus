@@ -1,0 +1,205 @@
+; Packaging information for c_ville_council_us
+name = "C-ville, Council Us"
+description = ""
+exclusive = "1"
+core = "7.x"
+; ----------
+; Dependencies
+; ----------
+; @font-your-face
+dependencies[] = fontyourface
+dependencies[] = fontyourface_ui
+dependencies[] = fontyourface_wysiwyg
+dependencies[] = local_fonts
+; Administration
+dependencies[] = module_filter
+; Chaos tool suite
+dependencies[] = ctools
+; Commerce
+dependencies[] = commerce
+dependencies[] = commerce_cart
+dependencies[] = commerce_checkout
+dependencies[] = commerce_customer
+dependencies[] = commerce_customer_ui
+dependencies[] = commerce_line_item
+dependencies[] = commerce_line_item_ui
+dependencies[] = commerce_order
+dependencies[] = commerce_order_ui
+dependencies[] = commerce_payment
+dependencies[] = commerce_payment_ui
+dependencies[] = commerce_price
+dependencies[] = commerce_product
+dependencies[] = commerce_product_pricing
+dependencies[] = commerce_product_pricing_ui
+dependencies[] = commerce_product_reference
+dependencies[] = commerce_product_ui
+dependencies[] = commerce_tax
+dependencies[] = commerce_tax_ui
+dependencies[] = commerce_ui
+; Commerce (PayPal)
+dependencies[] = commerce_paypal
+dependencies[] = commerce_paypal_ec
+dependencies[] = commerce_paypal_wps
+; Core
+dependencies[] = block
+dependencies[] = color
+dependencies[] = comment
+dependencies[] = contact
+dependencies[] = contextual
+dependencies[] = dashboard
+dependencies[] = dblog
+dependencies[] = field
+dependencies[] = field_sql_storage
+dependencies[] = field_ui
+dependencies[] = file
+dependencies[] = filter
+dependencies[] = forum
+dependencies[] = help
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = node
+dependencies[] = number
+dependencies[] = options
+dependencies[] = overlay
+dependencies[] = path
+dependencies[] = rdf
+dependencies[] = search
+dependencies[] = shortcut
+dependencies[] = system
+dependencies[] = taxonomy
+dependencies[] = text
+dependencies[] = toolbar
+dependencies[] = trigger
+dependencies[] = update
+dependencies[] = user
+; Date/Time
+dependencies[] = calendar
+dependencies[] = date
+dependencies[] = date_all_day
+dependencies[] = date_api
+dependencies[] = date_popup
+dependencies[] = date_repeat
+dependencies[] = date_repeat_field
+dependencies[] = date_tools
+dependencies[] = date_views
+; Development
+dependencies[] = profiler_builder
+dependencies[] = profiler_builder_extras
+; Display Suite
+dependencies[] = ds
+dependencies[] = ds_format
+dependencies[] = ds_forms
+dependencies[] = ds_ui
+; Fields
+dependencies[] = addressfield
+dependencies[] = computed_field
+dependencies[] = conditional_fields
+dependencies[] = entityreference
+dependencies[] = field_sync
+dependencies[] = geofield
+dependencies[] = maxlength
+dependencies[] = phone
+; Flags
+dependencies[] = flag
+dependencies[] = flag_actions
+; Mail
+dependencies[] = smtp
+; Media
+dependencies[] = file_entity
+dependencies[] = imce
+dependencies[] = media
+dependencies[] = media_wysiwyg
+; Mobile
+dependencies[] = drupalgap
+dependencies[] = drupalgap_entityreference
+dependencies[] = drupalgap_flag
+dependencies[] = drupalgap_logintoboggan
+dependencies[] = drupalgap_mobile_notifications
+dependencies[] = drupalgap_rate
+; OAuth
+dependencies[] = oauth_common
+; OAuth2
+dependencies[] = oauth2_server
+; OpenLayers
+dependencies[] = openlayers
+dependencies[] = openlayers_heatmaps
+dependencies[] = openlayers_kml_layer
+dependencies[] = openlayers_plus
+dependencies[] = openlayers_ui
+dependencies[] = openlayers_views
+; Other
+dependencies[] = corner
+dependencies[] = cors
+dependencies[] = disqus
+dependencies[] = entity
+dependencies[] = entity_token
+dependencies[] = formblock
+dependencies[] = geocoder
+dependencies[] = geofield_map
+dependencies[] = geophp
+dependencies[] = libraries
+dependencies[] = logintoboggan
+dependencies[] = logintoboggan_rules
+dependencies[] = me
+dependencies[] = pathauto
+dependencies[] = profile2
+dependencies[] = proj4js
+dependencies[] = strongarm
+dependencies[] = token
+dependencies[] = twitter
+dependencies[] = twitter_actions
+dependencies[] = twitter_post
+dependencies[] = xautoload
+; Rules
+dependencies[] = rules
+dependencies[] = rules_admin
+dependencies[] = views_rules
+; Schema.org
+dependencies[] = schemaorg
+dependencies[] = schemaorg_contrib
+dependencies[] = schemaorg_ui
+; Services
+dependencies[] = flag_service
+dependencies[] = services
+dependencies[] = services_menu
+dependencies[] = services_votingapi
+; Services - authentication
+dependencies[] = services_oauth
+; Services - servers
+dependencies[] = rest_server
+; Statistics
+dependencies[] = googleanalytics
+; Taxonomy
+dependencies[] = taxonomy_manager
+; User interface
+dependencies[] = jquery_update
+dependencies[] = sweaver
+dependencies[] = wysiwyg
+; Views
+dependencies[] = better_exposed_filters
+dependencies[] = contextual_range_filter
+dependencies[] = views
+dependencies[] = views_bulk_operations
+dependencies[] = views_cross_join
+dependencies[] = views_expose_tables
+dependencies[] = views_infinite_scroll
+dependencies[] = views_json
+dependencies[] = views_php
+dependencies[] = views_send
+dependencies[] = views_ui
+dependencies[] = views_xml
+; Voting
+dependencies[] = rate
+dependencies[] = rate_expiration
+dependencies[] = rate_slider
+dependencies[] = votingapi
+; javascript
+dependencies[] = behavior_weights
+; other
+dependencies[] = push_notifications
+; Features
+dependencies[] = features
+dependencies[] = schemaorg_event
+dependencies[] = schemaorg_person
+
