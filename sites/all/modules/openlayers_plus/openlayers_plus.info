@@ -16,9 +16,9 @@ files[] = behaviors/openlayers_plus_behavior_tooltips_field.inc
 files[] = behaviors/openlayers_plus_behavior_maptext.inc
 files[] = behaviors/openlayers_plus_behavior_mapeditor.inc
 
-; Information added by Drupal.org packaging script on 2014-11-17
-version = "7.x-3.0-beta1+72-dev"
+; Information added by Drupal.org packaging script on 2015-02-09
+version = "7.x-3.0-beta1+73-dev"
 core = "7.x"
 project = "openlayers_plus"
-datestamp = "1416233285"
+datestamp = "1423488029"
 

@@ -184,28 +184,21 @@
 
               if (feature.attributes.field_description != undefined) {
                 text += '<div class="popup-content">' + feature.attributes.field_description + "</div>";
-              }else if (feature.attributes.description != undefined) {
+              } else if (feature.attributes.description != undefined) {
                 text += '<div class="popup-content">' + feature.attributes.description + "</div>";
-              }else if (feature.attributes.body != undefined) {
+              } else if (feature.attributes.body != undefined) {
                 text += '<div class="popup-content">' + feature.attributes.body + "</div>";
               }
 
-            }else if(feature.attributes.name) {
+            } else if(feature.attributes.name) {
               text = '<a href="#" class="popup-close">X</a>';
-
-              $.each(feature.attributes, function(index,item) {
-                //text += '<h2 class="popup-title">' + item + "</h2>";
-                if(index.indexOf("title") != -1 && item.indexOf("<a") == -1) {
-                  //alert(index);
-                  text += '<h2 class="popup-title">' + feature.attributes[index] + "</h2>";
-                }
-              });
+              text += '<h2 class="popup-title">' + feature.attributes.name + "</h2>";
 
               if (feature.attributes.field_description != undefined) {
                 text += '<div class="popup-content">' + feature.attributes.field_description + "</div>";
-              }else if (feature.attributes.description != undefined) {
+              } else if (feature.attributes.description != undefined) {
                 text += '<div class="popup-content">' + feature.attributes.description + "</div>";
-              }else if (feature.attributes.body != undefined) {
+              } else if (feature.attributes.body != undefined) {
                 text += '<div class="popup-content">' + feature.attributes.body + "</div>";
               }
 
