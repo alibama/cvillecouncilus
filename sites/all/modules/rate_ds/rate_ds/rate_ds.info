@@ -1,0 +1,7 @@
+name = Rate DS
+description = Display suite integration
+core = 7.x
+package = Voting
+dependencies[] = rate
+dependencies[] = ds
+files[] = rate_ds.module

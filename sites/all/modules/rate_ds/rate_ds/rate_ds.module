@@ -1,0 +1,81 @@
+<?php
+function rate_ds_ds_fields_info() {
+
+  $fields['node']['rate_integration'] =
+  $fields['comment']['rate_integration'] = array(
+    'title' => t('Rate integration'),
+    'field_type' => DS_FIELD_TYPE_FUNCTION,
+    'function' => 'theme_rate_ds',
+    'properties' => array(
+      'default' => array('widget_id' => false,'display_mode' => RATE_FULL ),
+      'settings' => array(),
+    )
+  );
+  return $fields ;
+}
+
+function theme_rate_ds($vars) {
+  
+  $entity = $vars['entity'] ;
+  $entity_type = $vars['entity_type'] ;
+  $settings = isset($vars['formatter_settings']) ? $vars['formatter_settings'] : $vars['properties']['default'];
+
+  $widget_id = $settings['widget_id'] ;
+
+  if ( $widget_id === false ) return ;
+  
+  $entity_id = entity_extract_ids($entity_type,$entity);
+  $entity_id = array_shift($entity_id);
+  
+  return rate_generate_widget($widget_id, $entity_type, $entity_id,$settings['display_mode']);
+}
+
+function rate_ds_ds_field_settings_form($field) {
+  $settings = isset($field['formatter_settings']) ? $field['formatter_settings'] : $field['properties']['default'];
+  
+  $widgets = variable_get(RATE_VAR_WIDGETS, array());
+  
+  $bundle = $field['bundle'] ;
+  $type = $field['entity_type'] ;
+  
+  if ( $type == 'comment' ) {
+    $bundle = explode('_',$bundle) ;
+    unset($bundle[0]);
+    unset($bundle[1]);
+    $bundle = implode('_',$bundle) ;
+  }  
+  
+  $options = array();
+  $options[0] = t('Choose a widget') ;
+  foreach ( $widgets as $wid => $widget ) {
+    if ( $type == 'node' && in_array($bundle,$widget->node_types) ) {
+      $options[$wid] = $widget->name ;
+    } elseif  ( $type == 'comment' && in_array( $bundle,$widget->comment_types) ) {
+      $options[$wid] = $widget->name ;
+    }
+  }
+  $form['widget_id'] = array(
+    '#type' => 'select',
+    '#title' => t('Widget'),
+    '#options' => $options,
+    '#default_value' => $settings['widget_id'],
+  );
+  
+  $form['display_mode'] = array(
+      '#type' => 'select',
+      '#title' => t('Widget'),
+      '#options' => array( RATE_FULL => t('Rate full') ,
+                           RATE_COMPACT => t('Compact'),
+                           RATE_DISABLED => t('Disabled'),
+                           RATE_COMPACT_DISABLED => t('Disabled compact'),
+                           RATE_CLOSED => t('Rate closed') ),
+      '#default_value' => $settings['display_mode'],
+  );
+  
+  return $form;
+}
+
+function rate_ds_ds_field_format_summary($field) {
+  $settings = isset($field['formatter_settings']) ? $field['formatter_settings'] : $field['properties']['default'];
+  return 'widget_id: ' . $settings['widget_id'] . '<br />display_mode: ' . $settings['display_mode'];
+}
