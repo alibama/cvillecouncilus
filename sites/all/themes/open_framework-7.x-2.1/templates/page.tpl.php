@@ -59,7 +59,7 @@
         <div id="nav-search" class="nav-search"> <?php print render($page['search_box']); ?> </div>
         <?php endif; ?>
         <?php if ($main_menu): ?>
-        <button name="main menu" value="main_menu" class="btn btn-navbar collapsed" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </button>
+        <button aria-label="main menu" name="main menu" title="the main menu" value="main_menu" class="btn btn-navbar collapsed" data-toggle="collapse" data-target=".nav-collapse"> <span class="hidden-btn-label">Main menu<span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span> </span></button>
         <?php if ($primary_nav || !empty($page['navigation'])): ?>
         <div class="nav-collapse collapse">
           <nav id="main-nav" role="navigation">
