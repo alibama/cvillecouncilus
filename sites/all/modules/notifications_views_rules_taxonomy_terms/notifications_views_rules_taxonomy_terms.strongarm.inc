@@ -95,6 +95,9 @@ function notifications_views_rules_taxonomy_terms_strongarm() {
       'subscriptions' => array(
         'custom_settings' => FALSE,
       ),
+      'drupalgap' => array(
+        'custom_settings' => TRUE,
+      ),
     ),
     'extra_fields' => array(
       'form' => array(

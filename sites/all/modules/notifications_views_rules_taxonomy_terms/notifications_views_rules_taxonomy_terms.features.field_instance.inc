@@ -930,6 +930,379 @@ function notifications_views_rules_taxonomy_terms_field_default_field_instances(
     ),
   );
 
+  // Exported field_instance: 'profile2-main-field_alert_me_to_issues_within_'
+  $field_instances['profile2-main-field_alert_me_to_issues_within_'] = array(
+    'bundle' => 'main',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => 'We can alert you when issues are happening near your home.  Please let us know the radius from your house that you\'re interested in.  If you leave this blank we won\'t email you :)',
+    'display' => array(
+      'account' => array(
+        'label' => 'inline',
+        'module' => 'number',
+        'settings' => array(
+          'decimal_separator' => '.',
+          'prefix_suffix' => TRUE,
+          'scale' => 0,
+          'thousand_separator' => ' ',
+        ),
+        'type' => 'number_integer',
+        'weight' => 3,
+      ),
+      'default' => array(
+        'label' => 'inline',
+        'module' => 'number',
+        'settings' => array(
+          'decimal_separator' => '.',
+          'prefix_suffix' => TRUE,
+          'scale' => 0,
+          'thousand_separator' => ' ',
+        ),
+        'type' => 'number_integer',
+        'weight' => 3,
+      ),
+    ),
+    'entity_type' => 'profile2',
+    'field_name' => 'field_alert_me_to_issues_within_',
+    'label' => 'Alert me to issues within this many yards of my house',
+    'required' => 0,
+    'settings' => array(
+      'max' => '',
+      'min' => '',
+      'prefix' => '',
+      'suffix' => '',
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 0,
+      'module' => 'number',
+      'settings' => array(),
+      'type' => 'number',
+      'weight' => 4,
+    ),
+  );
+
+  // Exported field_instance: 'profile2-main-field_home_address'
+  $field_instances['profile2-main-field_home_address'] = array(
+    'bundle' => 'main',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'account' => array(
+        'label' => 'above',
+        'module' => 'addressfield',
+        'settings' => array(
+          'format_handlers' => array(
+            0 => 'address',
+          ),
+          'use_widget_handlers' => 1,
+        ),
+        'type' => 'addressfield_default',
+        'weight' => 0,
+      ),
+      'default' => array(
+        'label' => 'above',
+        'module' => 'addressfield',
+        'settings' => array(
+          'format_handlers' => array(
+            0 => 'address',
+          ),
+          'use_widget_handlers' => 1,
+        ),
+        'type' => 'addressfield_default',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'profile2',
+    'field_name' => 'field_home_address',
+    'label' => 'Home address',
+    'required' => 0,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'addressfield',
+      'settings' => array(
+        'available_countries' => array(
+          'US' => 'US',
+        ),
+        'default_country' => 'US',
+        'format_handlers' => array(
+          'address' => 'address',
+          'address-hide-country' => 'address-hide-country',
+          'address-hide-postal-code' => 0,
+          'address-hide-street' => 0,
+          'organisation' => 0,
+          'name-full' => 0,
+          'name-oneline' => 0,
+        ),
+      ),
+      'type' => 'addressfield_standard',
+      'weight' => 1,
+    ),
+  );
+
+  // Exported field_instance: 'profile2-main-field_home_address_map'
+  $field_instances['profile2-main-field_home_address_map'] = array(
+    'bundle' => 'main',
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'account' => array(
+        'label' => 'above',
+        'module' => 'geofield_map',
+        'settings' => array(
+          'geofield_map_baselayers_hybrid' => 1,
+          'geofield_map_baselayers_map' => 1,
+          'geofield_map_baselayers_physical' => 0,
+          'geofield_map_baselayers_satellite' => 1,
+          'geofield_map_center' => array(
+            'geocode' => 'Find my location',
+            'lat' => '',
+            'lon' => '',
+          ),
+          'geofield_map_controltype' => 'default',
+          'geofield_map_draggable' => 1,
+          'geofield_map_height' => '300px',
+          'geofield_map_maptype' => 'map',
+          'geofield_map_max_zoom' => 0,
+          'geofield_map_min_zoom' => 0,
+          'geofield_map_mtc' => 'standard',
+          'geofield_map_overview' => 0,
+          'geofield_map_overview_opened' => 0,
+          'geofield_map_pancontrol' => 1,
+          'geofield_map_scale' => 0,
+          'geofield_map_scrollwheel' => 0,
+          'geofield_map_streetview_show' => 0,
+          'geofield_map_width' => '100%',
+          'geofield_map_zoom' => 13,
+        ),
+        'type' => 'geofield_map_map',
+        'weight' => 1,
+      ),
+      'default' => array(
+        'label' => 'above',
+        'module' => 'geofield_map',
+        'settings' => array(
+          'geofield_map_baselayers_hybrid' => 1,
+          'geofield_map_baselayers_map' => 1,
+          'geofield_map_baselayers_physical' => 0,
+          'geofield_map_baselayers_satellite' => 1,
+          'geofield_map_center' => array(
+            'geocode' => 'Find my location',
+            'lat' => '',
+            'lon' => '',
+          ),
+          'geofield_map_controltype' => 'default',
+          'geofield_map_draggable' => 1,
+          'geofield_map_height' => '300px',
+          'geofield_map_maptype' => 'map',
+          'geofield_map_max_zoom' => 0,
+          'geofield_map_min_zoom' => 0,
+          'geofield_map_mtc' => 'standard',
+          'geofield_map_overview' => 0,
+          'geofield_map_overview_opened' => 0,
+          'geofield_map_pancontrol' => 1,
+          'geofield_map_scale' => 0,
+          'geofield_map_scrollwheel' => 0,
+          'geofield_map_streetview_show' => 0,
+          'geofield_map_width' => '100%',
+          'geofield_map_zoom' => 13,
+        ),
+        'type' => 'geofield_map_map',
+        'weight' => 1,
+      ),
+    ),
+    'entity_type' => 'profile2',
+    'field_name' => 'field_home_address_map',
+    'label' => 'Home address map',
+    'required' => 0,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'geocoder',
+      'settings' => array(
+        'delta_handling' => 'default',
+        'geocoder_field' => 'field_home_address',
+        'geocoder_handler' => 'google',
+        'handler_settings' => array(
+          'google' => array(
+            'all_results' => 0,
+            'geometry_type' => 'point',
+            'reject_results' => array(
+              'APPROXIMATE' => 0,
+              'GEOMETRIC_CENTER' => 0,
+              'RANGE_INTERPOLATED' => 0,
+              'ROOFTOP' => 0,
+            ),
+          ),
+        ),
+      ),
+      'type' => 'geocoder',
+      'weight' => 2,
+    ),
+  );
+
+  // Exported field_instance: 'profile2-main-field_my_interests'
+  $field_instances['profile2-main-field_my_interests'] = array(
+    'bundle' => 'main',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => 'Please subscribe me to the following issue groups',
+    'display' => array(
+      'account' => array(
+        'label' => 'above',
+        'module' => 'taxonomy',
+        'settings' => array(),
+        'type' => 'taxonomy_term_reference_link',
+        'weight' => 2,
+      ),
+      'default' => array(
+        'label' => 'above',
+        'module' => 'taxonomy',
+        'settings' => array(),
+        'type' => 'taxonomy_term_reference_link',
+        'weight' => 2,
+      ),
+    ),
+    'entity_type' => 'profile2',
+    'field_name' => 'field_my_interests',
+    'label' => 'My Interests',
+    'required' => 0,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'options',
+      'settings' => array(),
+      'type' => 'options_buttons',
+      'weight' => 3,
+    ),
+  );
+
+  // Exported field_instance: 'profile2-main-field_phone_carrier'
+  $field_instances['profile2-main-field_phone_carrier'] = array(
+    'bundle' => 'main',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => 'again - this is only important if you want to get instant messages on your phone - please leave blank otherwise',
+    'display' => array(
+      'account' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 5,
+      ),
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 6,
+      ),
+    ),
+    'entity_type' => 'profile2',
+    'field_name' => 'field_phone_carrier',
+    'label' => 'Phone Carrier',
+    'required' => 0,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'options',
+      'settings' => array(),
+      'type' => 'options_select',
+      'weight' => 6,
+    ),
+  );
+
+  // Exported field_instance: 'profile2-main-field_phone_number'
+  $field_instances['profile2-main-field_phone_number'] = array(
+    'bundle' => 'main',
+    'default_value' => array(
+      0 => array(
+        'value' => '434-242-5555',
+      ),
+    ),
+    'deleted' => 0,
+    'description' => 'If you want to get notifications on your phone please provide your number - otherwise just leave it blank.... I promise I\'m never going to call you up.  Ever.  ',
+    'display' => array(
+      'account' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 6,
+      ),
+      'default' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 5,
+      ),
+    ),
+    'entity_type' => 'profile2',
+    'field_name' => 'field_phone_number',
+    'label' => 'Phone Number',
+    'required' => 0,
+    'settings' => array(
+      'ca_phone_parentheses' => 0,
+      'ca_phone_separator' => '',
+      'phone_country_code' => 0,
+      'phone_default_country_code' => 1,
+      'phone_int_max_length' => 15,
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 0,
+      'module' => 'phone',
+      'settings' => array(),
+      'type' => 'phone_textfield',
+      'weight' => 5,
+    ),
+  );
+
+  // Exported field_instance: 'profile2-main-field_sms_number'
+  $field_instances['profile2-main-field_sms_number'] = array(
+    'bundle' => 'main',
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'account' => array(
+        'label' => 'above',
+        'module' => 'computed_field',
+        'settings' => array(),
+        'type' => 'computed_field_unsanitized',
+        'weight' => 4,
+      ),
+      'default' => array(
+        'label' => 'above',
+        'module' => 'computed_field',
+        'settings' => array(),
+        'type' => 'computed_field_plain',
+        'weight' => 4,
+      ),
+    ),
+    'entity_type' => 'profile2',
+    'field_name' => 'field_sms_number',
+    'label' => 'sms number',
+    'required' => 0,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 0,
+      'module' => 'computed_field',
+      'settings' => array(),
+      'type' => 'computed',
+      'weight' => 7,
+    ),
+  );
+
   // Exported field_instance: 'taxonomy_term-council_vision_areas-field_category_images'
   $field_instances['taxonomy_term-council_vision_areas-field_category_images'] = array(
     'bundle' => 'council_vision_areas',
@@ -1009,6 +1382,7 @@ function notifications_views_rules_taxonomy_terms_field_default_field_instances(
   // Translatables
   // Included for use with string extractors like potx.
   t('Action Required');
+  t('Alert me to issues within this many yards of my house');
   t('Alignment with Council Vision Areas and Strategic Plan');
   t('Attachment');
   t('Background');
@@ -1017,15 +1391,25 @@ function notifications_views_rules_taxonomy_terms_field_default_field_instances(
   t('Community Engagement');
   t('Deadline');
   t('Discussion');
+  t('Home address');
+  t('Home address map');
+  t('If you want to get notifications on your phone please provide your number - otherwise just leave it blank.... I promise I\'m never going to call you up.  Ever.  ');
   t('Location');
   t('Location Map');
+  t('My Interests');
+  t('Phone Carrier');
+  t('Phone Number');
   t('Please let us know when the voting should begin and when it should end for this issue');
   t('Please post your issue on twitter!');
+  t('Please subscribe me to the following issue groups');
   t('Post this issue to Twitter');
   t('Recommendation');
   t('Staff Contacts');
   t('Start typing and names should appear, use a comma to separate names');
+  t('We can alert you when issues are happening near your home.  Please let us know the radius from your house that you\'re interested in.  If you leave this blank we won\'t email you :)');
   t('What\'s up?');
+  t('again - this is only important if you want to get instant messages on your phone - please leave blank otherwise');
+  t('sms number');
 
   return $field_instances;
 }
