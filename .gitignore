@@ -4,4 +4,5 @@ php_errors.log
 # Ignore paths that contain user-generated content.
 sites/*/files
 sites/*/private
+mobile-application/app/modules/push_notifications/push_notifications.js
 pma/*
