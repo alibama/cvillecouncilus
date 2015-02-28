@@ -1,0 +1,41 @@
+<?php
+
+class XLSExportViewsDataExportTests extends ViewsDataExportSimpleExportTest {
+
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'XLS Export',
+      'description' => 'Various tests for exporting to XLS.',
+      'group' => 'Views Data Export',
+    );
+  }
+
+  protected $vde_export_type = 'XLS';
+
+  protected function getStylePluginName() {
+    return 'views_data_export_xls';
+  }
+
+  protected function getExportView($path = 'vde_test') {
+    // Create the basic view.
+    $view = $this->getBasicExportView();
+
+    $display = $view->new_display('views_data_export', 'Data export', 'vde_test');
+    $display->override_option('style_plugin', $this->getStylePluginName());
+    $display->override_option('path', $path);
+
+    $expected = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:A1"/><sheetData>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ' . '
+<row><c r="A1"><v>1</v></c><c r="B1" t="inlineStr"><is><t>John</t></is></c><c r="C1"><v>25</v></c></row>
+<row><c r="A2"><v>2</v></c><c r="B2" t="inlineStr"><is><t>George</t></is></c><c r="C2"><v>27</v></c></row>
+<row><c r="A3"><v>3</v></c><c r="B3" t="inlineStr"><is><t>Ringo</t></is></c><c r="C3"><v>28</v></c></row>
+<row><c r="A4"><v>4</v></c><c r="B4" t="inlineStr"><is><t>Paul</t></is></c><c r="C4"><v>26</v></c></row>
+<row><c r="A5"><v>5</v></c><c r="B5" t="inlineStr"><is><t>Meredith</t></is></c><c r="C5"><v>30</v></c></row>
+</sheetData></worksheet>';
+
+    return array(&$view, $expected);
+  }
+
+}

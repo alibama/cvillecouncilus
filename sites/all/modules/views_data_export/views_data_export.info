@@ -1,0 +1,45 @@
+name = Views Data Export
+description = "Plugin to export views data into various file formats"
+
+package = Views
+core = 7.x
+
+dependencies[] = views
+
+; Plugins
+files[] = plugins/views_data_export_plugin_display_export.inc
+files[] = plugins/views_data_export_plugin_style_export.inc
+
+; Exporters
+files[] = exporters/views_data_export_exporter.inc
+files[] = exporters/views_data_export_exporter_delimited.inc
+files[] = exporters/views_data_export_exporter_doc.inc
+files[] = exporters/views_data_export_exporter_excel_xlsx.inc
+files[] = exporters/views_data_export_exporter_txt.inc
+files[] = exporters/views_data_export_exporter_xml.inc
+
+; Interfaces
+files[] = exporters/ViewsDataExportExporterInterface.inc
+files[] = exporters/ViewsDataExportExporterUserConfigurationInterface.inc
+
+; Tests
+files[] = "tests/base.test"
+files[] = "tests/csv_export.test"
+files[] = "tests/doc_export.test"
+files[] = "tests/txt_export.test"
+files[] = "tests/xls_export.test"
+files[] = "tests/xml_export.test"
+
+; Exporter Tests
+files[] = "tests/exporter_tests/base.test"
+files[] = "tests/exporter_tests/csv.test"
+files[] = "tests/exporter_tests/xlsx.test"
+files[] = "tests/exporter_tests/txt.test"
+files[] = "tests/exporter_tests/doc.test"
+files[] = "tests/exporter_tests/xml.test"
+; Information added by Drupal.org packaging script on 2014-09-17
+version = "7.x-4.x-dev"
+core = "7.x"
+project = "views_data_export"
+datestamp = "1410975745"
+

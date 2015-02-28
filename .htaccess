@@ -113,6 +113,36 @@ php_value error_log ./php_errors.log
   # If your site is running in a VirtualDocumentRoot at http://example.com/,
   # uncomment the following line:
   RewriteBase /
+  ### BOOST START ###
+
+  # Allow for alt paths to be set via htaccess rules; allows for cached variants (future mobile support)
+  RewriteRule .* - [E=boostpath:normal]
+
+#  # Apache 2.4 bug workaround
+#  # Enables Search from home page https://drupal.org/node/2078595#comment-8724321
+#  RewriteCond %{REQUEST_METHOD} ^(POST)$
+#  RewriteCond %{REQUEST_URI} /
+#  RewriteRule .* / [S=3]
+
+  # Caching for anonymous users
+  # Skip boost IF not get request OR uri has wrong dir OR cookie is set OR request came from this server
+  RewriteCond %{REQUEST_METHOD} !^(GET|HEAD)$ [OR]
+  RewriteCond %{REQUEST_URI} (^/(admin|cache|misc|modules|sites|system|openid|themes|node/add|comment/reply))|(/(edit|user|user/(login|password|register))$) [OR]
+  RewriteCond %{HTTP_COOKIE} DRUPAL_UID [OR]
+  RewriteCond %{ENV:REDIRECT_STATUS} 200
+  RewriteRule .* - [S=2]
+
+#  # Apache 2.4 bug workaround
+#  # Enables caching of index/ home page
+#  RewriteCond %{REQUEST_URI} ^/index\.php$
+#  RewriteCond %{DOCUMENT_ROOT}/cache/%{ENV:boostpath}/%{HTTP_HOST}/\_%{QUERY_STRING}\.html -s
+#  RewriteRule .* cache/%{ENV:boostpath}/%{HTTP_HOST}/\_%{QUERY_STRING}\.html [L,T=text/html]
+
+  # NORMAL
+  RewriteCond %{DOCUMENT_ROOT}/cache/%{ENV:boostpath}/%{HTTP_HOST}%{REQUEST_URI}_%{QUERY_STRING}\.html -s
+  RewriteRule .* cache/%{ENV:boostpath}/%{HTTP_HOST}%{REQUEST_URI}_%{QUERY_STRING}\.html [L,T=text/html]
+
+  ### BOOST END ###
 
   # Pass all requests not referring directly to files in the filesystem to
   # index.php. Clean URLs are handled in drupal_environment_initialize().

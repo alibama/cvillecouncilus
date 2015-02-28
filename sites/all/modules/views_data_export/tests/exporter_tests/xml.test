@@ -1,0 +1,339 @@
+<?php
+
+class XMLExportViewsDataExportExporterTests extends ViewsDataExportExporterBaseTest {
+
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'XML Exporter Test',
+      'description' => 'Various tests for export using the XML exporter class.',
+      'group' => 'Views Data Export',
+    );
+  }
+
+  protected function getExporter($options = array()) {
+
+    // todo Replace require_once with an autoloader.
+    require_once dirname(__FILE__) . '/../../exporters/views_data_export_exporter_xml.inc';
+    $classname = $this->getExporterClassName();
+
+    return new $classname($options);
+  }
+
+  protected function getExporterClassName() {
+    return 'ViewsDataExportExporterXML';
+  }
+
+  /**
+   * Test the opening XML.
+   */
+  protected function testBOF() {
+    $exporter = $this->getExporter(
+      array(
+        'field_labels' => array('name','age','job','created',),
+      )
+    );
+    $BOF = $this->executeBOF($exporter);
+    $expect = '<?xml version="1.0" encoding="UTF-8" ?>
+<root>';
+    $result = strpos($BOF, $expect) == 0;
+    $this->logVerboseResult($BOF, 'Actual result');
+    $this->logVerboseResult($expect, 'Expected to contain');
+    $this->assertTrue($result, 'The BOF is as expected.');
+  }
+
+  /**
+   * Test that rows are written correctly.
+   */
+  protected function testBodyWrite() {
+    $dataSet = array(
+      array (
+        'name' => 'John Lennon',
+        'their age' => 25,
+        'pets' => array(
+          'cat' => 'figaro',
+          'dog' => 'pluto',
+        ),
+        'colours' => array('red', 'blue',),
+        'their job' => 'they are a Singer',
+        'created' => gmmktime(0, 0, 0, 1, 1, 2000),
+      ),
+    );
+    $result = $this->executeFullWrite($this->getExporter(), $dataSet, 0,
+      array(
+        'name' => 'name',
+        'their age' => 'their age',
+        'pets' => 'pets',
+        'cat' => 'cat',
+        'dog' => 'dog',
+        'colours' => 'colours',
+        'their job' => 'their job',
+        'created' => 'created',
+      )
+    );
+    $expected = '  <item>
+    <name>John Lennon</name>
+    <their-age>25</their-age>
+    <pets>
+      <cat>figaro</cat>
+      <dog>pluto</dog>
+    </pets>
+    <colours>
+      <data>red</data>
+      <data>blue</data>
+    </colours>
+    <their-job>they are a Singer</their-job>
+    <created>946684800</created>
+  </item>
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+  }
+
+  /**
+   * Test the space character swap-out options.
+   */
+  protected function testTransform() {
+    // Set up a dataset with spaces in the attribute names.
+    $spaced_dataset = array(
+      array(
+        'name of artist' => 'John Lennon',
+        'their age' => 25,
+        'their job' => 'they are a Singer',
+        'created' => gmmktime(0, 0, 0, 1, 1, 2000),
+      ),
+    );
+
+    // Test each of the different swap-out options.
+
+    // Dash.
+    $result = $this->executeFullWrite($this->getExporter(array('transform' => true, 'transform_type' => 'dash',)), $spaced_dataset, 0,
+      array(
+        'name of artist' => 'name of artist',
+        'their age' => 'their age',
+        'their job' => 'their job',
+        'created' => 'created',
+      ));
+    $expected = '  <item>
+    <name-of-artist>John Lennon</name-of-artist>
+    <their-age>25</their-age>
+    <their-job>they are a Singer</their-job>
+    <created>946684800</created>
+  </item>
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+
+    // Underline.
+    $result = $this->executeFullWrite($this->getExporter(array('transform' => true, 'transform_type' => 'underline',)), $spaced_dataset, 0,
+      array(
+        'name of artist' => 'name of artist',
+        'their age' => 'their age',
+        'their job' => 'their job',
+        'created' => 'created',
+      ));
+    $expected = '  <item>
+    <name_of_artist>John Lennon</name_of_artist>
+    <their_age>25</their_age>
+    <their_job>they are a Singer</their_job>
+    <created>946684800</created>
+  </item>
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+
+    // camelCase.
+    $result = $this->executeFullWrite($this->getExporter(array('transform' => true, 'transform_type' => 'camelCase',)), $spaced_dataset, 0,
+      array(
+        'name of artist' => 'name of artist',
+        'their age' => 'their age',
+        'their job' => 'their job',
+        'created' => 'created',
+      ));
+    $expected = '  <item>
+    <nameOfArtist>John Lennon</nameOfArtist>
+    <theirAge>25</theirAge>
+    <theirJob>they are a Singer</theirJob>
+    <created>946684800</created>
+  </item>
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+
+    // PascalCase.
+    $result = $this->executeFullWrite($this->getExporter(array('transform' => true, 'transform_type' => 'PascalCase',)), $spaced_dataset, 0,
+      array(
+        'name of artist' => 'name of artist',
+        'their age' => 'their age',
+        'their job' => 'their job',
+        'created' => 'created',
+      ));
+    $expected = '  <item>
+    <NameOfArtist>John Lennon</NameOfArtist>
+    <TheirAge>25</TheirAge>
+    <TheirJob>they are a Singer</TheirJob>
+    <Created>946684800</Created>
+  </item>
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+  }
+
+  /**
+   * Test that the chosen RootNode is used when the option is set.
+   */
+  protected function testRootNode() {
+    // Get an exporter. Do it here for code clarity.
+    $exporter = $this->getExporter(
+      array(
+        'field_labels' => array('name','age','job','created',),
+        'root_node' => 'test_document_root',
+      )
+    );
+    $BOF = $this->executeBOF($exporter);
+    // Expect that the document root element be test_document_root.
+    $expected = '<test_document_root>';
+    $result = strpos($BOF, $expected) > -1;
+    $this->logVerboseResult($BOF, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected to contain');
+    $this->assertTrue($result, 'The Root Node is as expected.');
+  }
+
+  /**
+   * Test the entity encoding options.
+   */
+  protected function testEntityEncode() {
+    // Whip up a dataset with some valid XML attribute values.
+    $test_entity_encode_dataset = array(
+      array(
+        'name' => '<strong>John</strong>',
+        'age' => 25,
+        'job' => '<em>Singer</em>',
+      ),
+    );
+    // Execute a full write, specifying that the name attribute already provides
+    // valid XML, so should not be played around with.
+    $result = $this->executeFullWrite($this->getExporter(array(
+      'no_entity_encode' => array(
+        'name' => 'name',
+      ))), $test_entity_encode_dataset, 0,
+      array(
+        'name' => 'name',
+        'age' => 'age',
+        'job' => 'job',
+      )
+    );
+
+    // Expect the name attribute to contain the <strong> XML tags.
+    // The <em> tags in the job attribute should still be escaped/encoded.
+    $expected = '  <item>
+    <name><strong>John</strong></name>
+    <age>25</age>
+    <job>&amp;lt;em&amp;gt;Singer&amp;lt;/em&amp;gt;</job>
+  </item>
+';
+
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected to contain');
+    $this->assertEqual($result, $expected, 'The entities were encoded correctly.');
+  }
+
+  /**
+   * Test that fields can be correctly escaped in CDATA tags.
+   */
+  protected function testCData() {
+    // Set up a dataset with illegal characters, which requires CDATA tags.
+    $CDATA_dataset = array(
+      array(
+        'illegal_content' => 'illegal XML characters < & >',
+        'name' => 'John',
+        'age' => 25,
+        'job' => 'singer',
+        'created' => gmmktime(0, 0, 0, 1, 1, 2000),
+      ),
+    );
+
+    // Write the dataset out, specifying the illegal_content attribute as
+    // requiring CDATA tags.
+    $result = $this->executeFullWrite($this->getExporter(array(
+      'cdata_wrapper' => array('illegal_content',),
+    )), $CDATA_dataset, 0,
+      array(
+        'illegal_content' => 'illegal_content',
+        'name' => 'name',
+        'age' => 'age',
+        'job' => 'job',
+        'created' => 'created',
+      ));
+    // Expect the illegal_content attribute value to be in CDATA tags.
+    $expected = '  <item>
+    <illegal_content><![CDATA[illegal XML characters < & >]]></illegal_content>
+    <name>John</name>
+    <age>25</age>
+    <job>singer</job>
+    <created>946684800</created>
+  </item>
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+  }
+
+  /**
+   * Test End Of File.
+   */
+  protected function testEOF() {
+    $exporter = $this->getExporter(
+      array(
+        'field_labels' => array('name','age','job','created',),
+        'root_node' => 'test_root_node',
+      )
+    );
+    $result = $this->executeEOF($exporter);
+    $expect = '</test_root_node>' . PHP_EOL;
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expect, 'Expected to contain');
+    $this->assertEqual($result, $expect, 'The EOF is as expected.');
+  }
+
+  /**
+   * Test that tags always come out valid.
+   */
+  protected function testTagValidity() {
+    // Set up a dataset with problems in the attribute names.
+    $spaced_dataset = array(
+      array(
+        'name of artist' => 'John Lennon',
+        'their age' => 25,
+        'their job' => 'they are a Singer',
+        'created' => gmmktime(0, 0, 0, 1, 1, 2000),
+      ),
+    );
+
+    // Test each of the different swap-out options.
+
+    // Dash.
+    $result = $this->executeFullWrite($this->getExporter(array('transform' => true, 'transform_type' => 'dash',)), $spaced_dataset, 0,
+      array(
+        'name of artist' => '',
+        'their age' => '1',
+        'their job' => 'BadCharacters>&<',
+      ));
+    $expected = '  <item>
+    <no-name>John Lennon</no-name>
+    <data>25</data>
+    <BadCharacters>they are a Singer</BadCharacters>
+    <created>946684800</created>
+  </item>
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+  }
+}

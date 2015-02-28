@@ -1,0 +1,87 @@
+<?php
+
+abstract class ViewsDataExportExporterBaseTest extends DrupalUnitTestCase {
+
+  protected function executeFullWrite($exporter, $rows, $row_count, $field_titles) {
+
+    $file = fopen('php://memory', 'w+');
+    foreach ($rows as $row) {
+      $exporter->add_row($file, $row, $row_count, $field_titles);
+      $row_count++;
+    };
+
+    // Read from file and verify contents.
+    fseek($file, 0);
+    $contents = '';
+    while (!feof($file)) {
+      $contents .= fread($file, 8192);
+    }
+
+    // Close up the file stream.
+    fclose($file);
+
+    return $contents;
+  }
+
+  protected function executeBOF($exporter) {
+    // Write to memory, rather than an actual file.
+    $file = fopen('php://memory', 'w+');
+    // Get the exporter to write the Beginning Of File content.
+    $exporter->bof($file);
+
+    // Get the content of the file.
+    fseek($file, 0);
+    $contents = '';
+    while (!feof($file)) {
+      $contents .= fread($file, 8192);
+    }
+
+    // Close up the file stream.
+    fclose($file);
+
+    // Return the contents for verification.
+    return $contents;
+  }
+
+  protected function executeEOF($exporter) {
+    // Write to memory, rather than an actual file.
+    $file = fopen('php://memory', 'w+');
+    // Get the exporter to write the Beginning Of File content.
+    $exporter->eof($file, 5, 5);
+
+    // Get the content of the file.
+    fseek($file, 0);
+    $contents = '';
+    while (!feof($file)) {
+      $contents .= fread($file, 8192);
+    }
+
+    // Close up the file stream.
+    fclose($file);
+
+    // Return the contents for verification.
+    return $contents;
+  }
+
+
+  /**
+   * Write a message out to the test results table.
+   *
+   * @param $message
+   * @return bool|void
+   */
+  protected function verbose($message) {
+    return $this->error($message, 'User notice');
+  }
+
+  /**
+   * A function to enable the tests to post results to the test results table.
+   *
+   * @param $result
+   * @param string $prefix
+   */
+  public function logVerboseResult($result, $prefix = '') {
+    $this->verbose($prefix . '<br><pre>' . check_plain($result) .'</pre>');
+  }
+
+}

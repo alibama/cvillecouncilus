@@ -5,4 +5,6 @@ php_errors.log
 sites/*/files
 sites/*/private
 mobile-application/app/modules/push_notifications/push_notifications.js
+mobile-application/app/modules/mobile_notifications/mobile_notifications.js
 pma/*
+cache/*

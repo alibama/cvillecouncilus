@@ -1,0 +1,116 @@
+<?php
+
+class XLSXExportViewsDataExportExporterTests extends ViewsDataExportExporterBaseTest {
+
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'XLSX Exporter Test',
+      'description' => 'Various tests for export using the Excel XLSX exporter class.',
+      'group' => 'Views Data Export',
+    );
+  }
+
+  protected function getExporter($options = array()) {
+
+    // todo Replace require_once with an autoloader.
+    require_once dirname(__FILE__) . '/../../exporters/views_data_export_exporter_excel_xlsx.inc';
+    $classname = $this->getExporterClassName();
+
+    return new $classname($options);
+  }
+
+  protected function getExporterClassName() {
+    return 'ViewsDataExportExporterExcelxlsx';
+  }
+
+  /**
+   * A very simple test dataset.
+   */
+  protected function dataSet() {
+    return array(
+      array(
+        'name' => 'John',
+        'age' => 25,
+        'job' => 'Singer',
+        'created' => gmmktime(0, 0, 0, 1, 1, 2000),
+      ),
+      array(
+        'name' => 'George',
+        'age' => 27,
+        'job' => 'Singer',
+        'created' => gmmktime(0, 0, 0, 1, 2, 2000),
+      ),
+      array(
+        'name' => 'Ringo',
+        'age' => 28,
+        'job' => 'Drummer',
+        'created' => gmmktime(6, 30, 30, 1, 1, 2000),
+      ),
+      array(
+        'name' => 'Paul',
+        'age' => 26,
+        'job' => 'Songwriter',
+        'created' => gmmktime(6, 0, 0, 1, 1, 2000),
+      ),
+      array(
+        'name' => 'Meredith',
+        'age' => 30,
+        'job' => 'Speaker',
+        'created' => gmmktime(6, 30, 10, 1, 1, 2000),
+      ),
+    );
+  }
+
+  /**
+   * Test the header writing.
+   */
+  protected function testBOF() {
+    $result = $this->executeBOF($this->getExporter(
+      array(
+        'field_labels' => array('name','age','job','created',),
+      )
+    ));
+    $expected = str_repeat(' ', 1024) . PHP_EOL;
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The header is as expected.');
+  }
+
+  /**
+   * Test row/body writing.
+   */
+  protected function testBodyWrite() {
+    $result = $this->executeFullWrite($this->getExporter(), $this->dataSet(), 0,
+      array(
+        'Name',
+        'Age',
+        'Job',
+        'Created',
+      )
+    );
+    $expected = '<row><c r="A1" t="inlineStr"><is><t>John</t></is></c><c r="B1"><v>25</v></c><c r="C1" t="inlineStr"><is><t>Singer</t></is></c><c r="D1"><v>946684800</v></c></row>
+<row><c r="A2" t="inlineStr"><is><t>George</t></is></c><c r="B2"><v>27</v></c><c r="C2" t="inlineStr"><is><t>Singer</t></is></c><c r="D2"><v>946771200</v></c></row>
+<row><c r="A3" t="inlineStr"><is><t>Ringo</t></is></c><c r="B3"><v>28</v></c><c r="C3" t="inlineStr"><is><t>Drummer</t></is></c><c r="D3"><v>946708230</v></c></row>
+<row><c r="A4" t="inlineStr"><is><t>Paul</t></is></c><c r="B4"><v>26</v></c><c r="C4" t="inlineStr"><is><t>Songwriter</t></is></c><c r="D4"><v>946706400</v></c></row>
+<row><c r="A5" t="inlineStr"><is><t>Meredith</t></is></c><c r="B5"><v>30</v></c><c r="C5" t="inlineStr"><is><t>Speaker</t></is></c><c r="D5"><v>946708210</v></c></row>
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+  }
+
+  /**
+   * Test End Of File.
+   */
+  protected function testEOF() {
+    $exporter = $this->getExporter();
+    $result = $this->executeEOF($exporter);
+    $expect = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:E5"/><sheetData></sheetData></worksheet>';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expect, 'Expected to contain');
+    $this->assertEqual($result, $expect, 'The EOF is as expected.');
+  }
+}

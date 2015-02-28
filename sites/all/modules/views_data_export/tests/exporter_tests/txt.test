@@ -1,0 +1,91 @@
+<?php
+
+class TXTExportViewsDataExportExporterTests extends ViewsDataExportExporterBaseTest {
+
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'TXT Exporter Test',
+      'description' => 'Various tests for export using the TXT exporter class.',
+      'group' => 'Views Data Export',
+    );
+  }
+
+  protected function getExporter($options = array()) {
+
+    // todo Replace require_once with an autoloader.
+    require_once dirname(__FILE__) . '/../../exporters/views_data_export_exporter_txt.inc';
+    $classname = $this->getExporterClassName();
+
+    return new $classname($options);
+  }
+
+  protected function getExporterClassName() {
+    return 'ViewsDataExportExporterTXT';
+  }
+
+  /**
+   * Test the header writing.
+   */
+  protected function testBOF() {
+    $result = $this->executeBOF($this->getExporter());
+    $expected = '';
+    // We don't expect a header.
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The header is as expected.');
+  }
+
+  /**
+   * Test that content rows are written correctly.
+   */
+  protected function testBodyWrite() {
+    $miniDataSet = array(
+      array(
+        'name' => 'John',
+        'age' => 25,
+        'job' => 'Singer',
+        'created' => gmmktime(0, 0, 0, 1, 1, 2000),
+      ),
+    );
+    $result = $this->executeFullWrite($this->getExporter(), $miniDataSet, 0,
+      array(
+        'name' => 'Name',
+        'age' =>'Age',
+        'job' =>'Job',
+        'created' =>'Created',
+      )
+    );
+    $expected = '[Name]
+
+John
+[Age]
+
+25
+[Job]
+
+Singer
+[Created]
+
+946684800
+----------------------------------------
+
+';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expected, 'Expected result');
+    $this->assertEqual($result, $expected, 'The content is as expected.');
+  }
+
+  /**
+   * Test End Of File.
+   */
+  protected function testEOF() {
+    $exporter = $this->getExporter();
+    $result = $this->executeEOF($exporter);
+    $expect = '';
+    $this->logVerboseResult($result, 'Actual result');
+    $this->logVerboseResult($expect, 'Expected to contain');
+    $this->assertEqual($result, $expect, 'The EOF is as expected.');
+  }
+}
