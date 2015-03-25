@@ -302,12 +302,12 @@ hr {
 }
 
 .site-name a, .site-name a:hover {
-  color: #333;
+  color: #CCC;
   text-decoration: none;
 }
 
 .site-name a:hover {
-  color: #000;
+  color: #FFF;
 }
 
 #name-and-slogan {
