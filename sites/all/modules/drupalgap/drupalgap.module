@@ -287,6 +287,7 @@ function drupalgap_preprocess_views_views_json_style_simple(&$vars) {
     $view['filter'] = array();
     foreach ($vars['view']->filter as $field => $filter) {
       if ($filter->options['exposed']) {
+        if (!isset($filter->value_options)) { continue; }
         // The entire field is huge in size and complexity, so let's trim it
         // down to the bare necessities.
         // @TODO - as the Views Exposed Filters feature evolves, revisit this
@@ -364,11 +365,11 @@ function drupalgap_sdk_form($form, &$form_state) {
 
   // Provide them with a link to view the app.
   if ($installed) {
+    $demo_link = base_path() . $dir . '/index.html';
     $form['dir']['#suffix'] = '<div class="messages status">' .
-      l(t('Launch app'), $dir . '/index.html', array('attributes' => array(
-        'target' => '_blank',
-        'title' => t('Test your app in a browser')
-      ))) . ' (' .
+      '<a href="' . $demo_link . '" target="_blank" title="' . t('Test your app in a browser') . '">' .
+        t('Launch app') .
+      '</a>' . ' (' .
       l(t('download'), 'admin/config/services/drupalgap/download-app', array('attributes' => array(
         'title' => t('Download a zip file of your app')
       ))) . ' | ' .
@@ -424,8 +425,8 @@ function drupalgap_sdk_form_submit($form, &$form_state) {
   //$name = "DrupalGap-7.x-1.x";
 
   // Recommended release.
-  $source = "https://github.com/signalpoint/DrupalGap/archive/7.x-1.0-rc5.zip";
-  $name = "DrupalGap-7.x-1.0-rc5";
+  $source = "https://github.com/signalpoint/DrupalGap/archive/7.x-1.0.zip";
+  $name = "DrupalGap-7.x-1.0";
 
   // Download a zip file of the SDK from github.
   if (file_put_contents($file, file_get_contents($source)) === false) {
@@ -755,6 +756,7 @@ function _drupalgap_add_term_data_to_entity($entity, $entity_type, $bundle) {
       $instance['widget']['module'] == 'taxonomy' ||
       (
         $instance['widget']['module'] == 'options' &&
+        isset($instance['display']['default']['module']) &&
         (
           $instance['display']['default']['module'] == 'taxonomy' ||
           $instance['display']['default']['module'] == 'i18n_taxonomy'

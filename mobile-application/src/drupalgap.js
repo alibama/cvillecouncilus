@@ -1,6 +1,9 @@
 // Initialize the drupalgap json object.
 var drupalgap = drupalgap || drupalgap_init(); // Do not remove this line.
 
+// Init _GET for url path query strings.
+var _dg_GET = _dg_GET || {};
+
 /**
  * Initializes the drupalgap json object.
  * @return {Object}
@@ -9,7 +12,6 @@ function drupalgap_init() {
     var dg = {
       modules: {
         core: [
-           { name: 'block' },
            { name: 'comment' },
            { name: 'contact' },
            { name: 'entity' },
@@ -28,10 +30,15 @@ function drupalgap_init() {
       },
       module_paths: [],
       includes: [
-          {name: 'common' },
-          {name: 'form' },
-          {name: 'menu' },
-          {name: 'theme' }
+          { name: 'block' },
+          { name: 'common' },
+          { name: 'form' },
+          { name: 'go' },
+          { name: 'menu' },
+          { name: 'page' },
+          { name: 'region' },
+          { name: 'theme' },
+          { name: 'title' }
       ],
       online: false,
       destination: '',
@@ -93,6 +100,9 @@ function drupalgap_init() {
  */
 function drupalgap_onload() {
   try {
+
+    // Remove any hash in case the app is restarting.
+    window.location.hash = '';
 
     // At this point, the Drupal object has been initialized by jDrupal and the
     // app/settings.js file was loaded in <head>. Let's add DrupalGap's modules
@@ -200,38 +210,46 @@ function _drupalgap_deviceready() {
         }
       }
       if (!proceed) {
-        drupalgap_goto('');
         // @todo - if module's are going to skip the System Connect call, then
         // we need to make sure Drupal.user is set up with appropriate defaults.
       }
       else {
-        // Device is online, let's build the default system connect options.
-        var options = {
-          success: function(result) {
-            // Call all hook_device_connected implementations then go to
-            // the front page.
-            module_invoke_all('device_connected');
-            drupalgap_goto('');
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-            // Build an informative error message and display it.
-            var msg = 'Failed connection to ' + drupalgap.settings.site_path;
-            if (errorThrown != '') { msg += ' - ' + errorThrown; }
-            msg += ' - Check your device\'s connection and check that ' +
-                   Drupal.settings.site_path + ' is online.';
-           drupalgap_alert(msg, {
-               title: 'Unable to Connect',
-               alertCallback: function() { drupalgap_goto('offline'); }
-           });
-          }
-        };
-
-        // Make the system connect call.
-        system_connect(options);
+        // Device is online, make the system connect call.
+        system_connect(_drupalgap_deviceready_options());
       }
     }
   }
   catch (error) { console.log('_drupalgap_deviceready - ' + error); }
+}
+
+/**
+ * Builds the default system connect options.
+ * @return {Object}
+ */
+function _drupalgap_deviceready_options() {
+  try {
+    var page_options = arguments[0] ? arguments[0] : {};
+    return {
+      success: function(result) {
+        // Call all hook_device_connected implementations then go to
+        // the front page.
+        module_invoke_all('device_connected');
+        drupalgap_goto('', page_options);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        // Build an informative error message and display it.
+        var msg = 'Failed connection to ' + drupalgap.settings.site_path;
+        if (errorThrown != '') { msg += ' - ' + errorThrown; }
+        msg += ' - Check your device\'s connection and check that ' +
+               Drupal.settings.site_path + ' is online.';
+       drupalgap_alert(msg, {
+           title: 'Unable to Connect',
+           alertCallback: function() { drupalgap_goto('offline'); }
+       });
+      }
+    };
+  }
+  catch (error) { console.log('_drupalgap_deviceready_options - ' + error); }
 }
 
 /**
@@ -358,7 +376,7 @@ function drupalgap_load_theme() {
       // Pull the theme name from the settings.js file.
       var theme_name = drupalgap.settings.theme;
       var theme_path = 'themes/' + theme_name + '/' + theme_name + '.js';
-      if (theme_name != 'easystreet3') {
+      if (theme_name != 'easystreet3' && theme_name != 'ava') {
         theme_path = 'app/themes/' + theme_name + '/' + theme_name + '.js';
       }
       if (!drupalgap_file_exists(theme_path)) {
@@ -517,9 +535,15 @@ function drupalgap_confirm(message) {
       if (options.buttonLabels) { buttonLabels = options.buttonLabels; }
     }
     // The phonegap confirm dialog doesn't seem to work in Ripple, so just use
-    // the default one. Otherwise just use the normal confirm.
-    if (typeof parent.window.ripple === 'function') {
-      if (confirm(message)) { confirmCallback(); }
+    // the default one, and it definitely doesn't work in a web app, so
+    // otherwise just use the default confirm.
+    if (
+      typeof parent.window.ripple === 'function' ||
+      drupalgap.settings.mode == 'web-app'
+    ) {
+      var r = confirm(message);
+      if (r == true) { confirmCallback(1); } // OK button.
+      else { confirmCallback(2); } // Cancel button.
     }
     else {
       navigator.notification.confirm(
@@ -532,6 +556,33 @@ function drupalgap_confirm(message) {
     return false;
   }
   catch (error) { console.log('drupalgap_confirm - ' + error); }
+}
+
+/**
+ * Show a non intrusive alert message. You may optionally pass in an
+ * integer value as the second argument to specify how many milliseconds
+ * to wait before closing the message. Likewise, you can pass in a
+ * third argument to specify how long to wait before opening the
+ * message.
+ * @param {string} html - The html to display.
+ */
+function drupalgap_toast(html) {
+  try {
+    var open = arguments[2] ? arguments[2] : 1;
+    var close = arguments[1] ? arguments[1] : 420;
+    setInterval(function() {
+        $.mobile.loading('show', {
+            textVisible: true,
+            html: html
+        });
+        setInterval(function() {
+            $.mobile.loading().hide();
+        }, close);
+    }, open);
+  }
+  catch (error) {
+    console.log('drupalgap_toast - ' + error);
+  }
 }
 
 /**
@@ -1271,6 +1322,28 @@ function drupalgap_set_message(message) {
     drupalgap.messages.push(msg);
   }
   catch (error) { console.log('drupalgap_set_message - ' + error); }
+}
+
+/**
+ * Sets the current messages.
+ * @param {Array}
+ */
+function drupalgap_set_messages(messages) {
+  try {
+    drupalgap.messages = messages;
+  }
+  catch (error) { console.log('drupalgap_set_messages - ' + error); }
+}
+
+/**
+ * Returns the current messages.
+ * @return {Array}
+ */
+function drupalgap_get_messages() {
+  try {
+    return drupalgap.messages;
+  }
+  catch (error) { console.log('drupalgap_get_messages - ' + error); }
 }
 
 /**

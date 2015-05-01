@@ -1,0 +1,121 @@
+diff --git a/resources/node_resource.inc b/resources/node_resource.inc
+index d03f89b..0dfb014 100644
+--- a/resources/node_resource.inc
++++ b/resources/node_resource.inc
+@@ -116,6 +116,14 @@ function _node_resource_definition() {
+               'default value' => variable_get('services_node_index_page_size', 20),
+               'source' => array('param' => 'pagesize'),
+             ),
++            array(
++              'name' => 'parameters_op',
++              'optional' => TRUE,
++              'type' => 'array',
++              'description' => 'Parameters operation array',
++              'default value' => array(),
++              'source' => array('param' => 'parameters_op'),
++            ),
+           ),
+           'access arguments' => array('access content'),
+         ),
+@@ -460,6 +468,9 @@ function _node_resource_delete($nid) {
+  *   indicating items to retrieve.
+  * @param $page_size
+  *   Integer number of items to be returned.
++ * @param $parameters_op
++ *   An array containing fields and values used to build a corresponding
++ *   condition for its $paramaters value.
+  * @return
+  *   An array of node objects.
+  *
+@@ -469,13 +480,12 @@ function _node_resource_delete($nid) {
+  *     - Is there an easier syntax we can define which can make the urls
+  *       for index requests more straightforward?
+  */
+-function _node_resource_index($page, $fields, $parameters, $page_size) {
++function _node_resource_index($page, $fields, $parameters, $page_size, $parameters_op = array()) {
+   $node_select = db_select('node', 't')
+     ->addTag('node_access')
+     ->orderBy('sticky', 'DESC')
+     ->orderBy('created', 'DESC');
+-
+-  services_resource_build_index_query($node_select, $page, $fields, $parameters, $page_size, 'node');
++  services_resource_build_index_query($node_select, $page, $fields, $parameters, $page_size, 'node', $parameters_op);
+ 
+   if (!user_access('administer nodes')) {
+     $node_select->condition('status', 1);
+diff --git a/resources/taxonomy_resource.inc b/resources/taxonomy_resource.inc
+index 293b7eb..2dc6968 100644
+--- a/resources/taxonomy_resource.inc
++++ b/resources/taxonomy_resource.inc
+@@ -118,6 +118,14 @@ function _taxonomy_resource_definition() {
+               'default value' => variable_get('services_taxonomy_term_index_page_size', 20),
+               'source' => array('param' => 'pagesize'),
+             ),
++            array(
++              'name' => 'parameters_op',
++              'optional' => TRUE,
++              'type' => 'array',
++              'description' => 'Parameters operation array',
++              'default value' => array(),
++              'source' => array('param' => 'parameters_op'),
++            ),
+           ),
+           'access arguments' => array('access content'),
+         ),
+@@ -583,18 +591,21 @@ function _taxonomy_resource_delete_access($tid) {
+  *   indicating items to retrieve.
+  * @param $page_size
+  *   Integer number of items to be returned.
++ * @param $parameters_op
++ *   An array containing fields and values used to build a corresponding
++ *   condition for its $paramaters value.
+  * @return
+  *   An array of term objects.
+  *
+  * @see _node_resource_index() for more notes
+  **/
+-function _taxonomy_term_resource_index($page, $fields, $parameters, $page_size) {
++function _taxonomy_term_resource_index($page, $fields, $parameters, $page_size, $parameters_op = array()) {
+   $taxonomy_select = db_select('taxonomy_term_data', 't')
+     ->orderBy('vid', 'DESC')
+     ->orderBy('weight', 'DESC')
+     ->orderBy('name', 'DESC');
+ 
+-  services_resource_build_index_query($taxonomy_select, $page, $fields, $parameters, $page_size, 'taxonomy_term');
++  services_resource_build_index_query($taxonomy_select, $page, $fields, $parameters, $page_size, 'taxonomy_term', $parameters_op);
+ 
+   $results = services_resource_execute_index_query($taxonomy_select);
+ 
+diff --git a/services.module b/services.module
+index de5319c..5ea56b5 100644
+--- a/services.module
++++ b/services.module
+@@ -902,14 +902,16 @@ function services_resources_as_procedures($resource, $resource_name) {
+  *   Integer page number we are requesting.
+  * @param $fields
+  *   Array fields to return.
+- * @param $parameter
++ * @param $parameters
+  *   Array parameters to add to the index query.
+  * @param $page_size
+  *   Integer number of items to be returned.
+  * @param $resource
+  *   String name of the resource building the index query
++ * @param $parameters_op
++ *   Array parameters_op to add to the index query.
+  */
+-function services_resource_build_index_query($query, $page, $fields, $parameters, $page_size, $resource) {
++function services_resource_build_index_query($query, $page, $fields, $parameters, $page_size, $resource, $parameters_op = array()) {
+   $default_limit = variable_get("services_{$resource}_index_page_size", 20);
+   if (!user_access('perform unlimited index queries') && $page_size > $default_limit) {
+     $page_size = $default_limit;
+@@ -923,7 +925,8 @@ function services_resource_build_index_query($query, $page, $fields, $parameters
+   }
+   if (isset($parameters) && is_array($parameters)) {
+     foreach ($parameters as $parameter => $parameter_value) {
+-      $query->condition($parameter, services_str_getcsv($parameter_value), 'IN');
++      $op = isset($parameters_op[$parameter]) ? strtoupper($parameters_op[$parameter]) : 'IN';
++      $query->condition($parameter, services_str_getcsv($parameter_value), $op);
+     }
+   }
+ }

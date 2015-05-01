@@ -902,14 +902,16 @@ function services_resources_as_procedures($resource, $resource_name) {
  *   Integer page number we are requesting.
  * @param $fields
  *   Array fields to return.
- * @param $parameter
+ * @param $parameters
  *   Array parameters to add to the index query.
  * @param $page_size
  *   Integer number of items to be returned.
  * @param $resource
  *   String name of the resource building the index query
+ * @param $parameters_op
+ *   Array parameters_op to add to the index query.
  */
-function services_resource_build_index_query($query, $page, $fields, $parameters, $page_size, $resource) {
+function services_resource_build_index_query($query, $page, $fields, $parameters, $page_size, $resource, $parameters_op = array()) {
   $default_limit = variable_get("services_{$resource}_index_page_size", 20);
   if (!user_access('perform unlimited index queries') && $page_size > $default_limit) {
     $page_size = $default_limit;
@@ -923,7 +925,8 @@ function services_resource_build_index_query($query, $page, $fields, $parameters
   }
   if (isset($parameters) && is_array($parameters)) {
     foreach ($parameters as $parameter => $parameter_value) {
-      $query->condition($parameter, services_str_getcsv($parameter_value), 'IN');
+      $op = isset($parameters_op[$parameter]) ? strtoupper($parameters_op[$parameter]) : 'IN';
+      $query->condition($parameter, services_str_getcsv($parameter_value), $op);
     }
   }
 }
@@ -1008,6 +1011,53 @@ function services_remove_user_data(&$account) {
     $account->picture->url = file_create_url($account->picture->uri);
   }
 }
+
+/**
+ * Helper function to remove fields from an entity according to field_access
+ *
+ * @param $op What you want to do with the entity. ie, view
+ * @param $entity_type The entity type. ie node, or user
+ * @param $entity The physical entity object
+ *
+ * returns $cloned_entity with fields removed that are needed.
+ */
+function services_field_permissions_clean($op, $entity_type, $entity) {
+  $cloned_entity = clone $entity;
+  //Each entity type seems to have a different key needed from field_info_instances
+  //Lets determine that key here.
+  switch ($entity_type) {
+    case 'comment':
+      $key = $cloned_entity->node_type;
+      break;
+    case 'user':
+      $key = $entity_type;
+      break;
+    case 'node':
+      $key = $cloned_entity->type;
+      break;
+    case 'taxonomy_term':
+      $key = $cloned_entity->vocabulary_machine_name;
+      break;
+    default:
+      $key = $entity_type;
+  }
+  //Allow someone to alter the field lookup key in the case they used their own entity.
+  drupal_alter('services_field_permissions_field_lookup_key', $key);
+
+  //load the fields info
+  $fields_info = field_info_instances($entity_type);
+  //Loop through all the fields on the content type
+  foreach ($fields_info[$key] as $field_name => $field_data) {
+    //check for access on our op
+    $access = field_access($op, field_info_field($field_name), $entity_type, $entity);
+    //If no access unset the field.
+    if (!$access) {
+      unset($cloned_entity->$field_name);
+    }
+  }
+  return $cloned_entity;
+}
+
 
 /**
  * Helper function to execute a index query.

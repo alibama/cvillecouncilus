@@ -160,6 +160,16 @@ function drupalgap_field_info_instances_add_to_form(entity_type, bundle,
               }
             }
           }
+
+          // Give module's a chance to alter their own element during the form
+          // build, that way element properties will be saved to local storage
+          // and then available during hook_field_widget_form() and the form
+          // submission process.
+          var fn = field.widget.module + '_field_info_instance_add_to_form';
+          if (drupalgap_function_exists(fn)) {
+            window[fn](entity_type, bundle, form, entity, form.elements[name]);
+          }
+
         }
       });
     }
@@ -282,6 +292,15 @@ function list_assemble_form_state_into_field(entity_type, bundle,
           );
         }
         break;
+      case 'list_text':
+        // For radio buttons on the user entity form, field values must be
+        // "flattened", i.e. this field_foo: { und: [ { value: 123 }]}, should be
+        // turned into field_foo: { und: 123 }
+        if (entity_type == 'user' && instance.widget.type == 'options_buttons') {
+          field_key.use_delta = false;
+          field_key.use_wrapper = false;
+        }
+        break;
       default:
         console.log(
           'WARNING: list_assemble_form_state_into_field - unknown type (' +
@@ -384,9 +403,10 @@ function number_field_widget_form(form, form_state, field, instance, langcode,
     switch (element.type) {
       case 'number_integer':
       case 'number_float':
-        // Change the form element into a number, and then set its min/max
-        // attributes along with the step.
-        items[delta].type = 'number';
+      case 'range':
+        // Change the form element into a number, unless we're using a range
+        // slider. Then set its min/max attributes along with the step.
+        if (element.type != 'range') { items[delta].type = 'number'; }
         if (!empty(instance.settings.max)) {
           items[delta].options.attributes['min'] = instance.settings.min;
         }

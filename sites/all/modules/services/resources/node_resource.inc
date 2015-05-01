@@ -116,6 +116,14 @@ function _node_resource_definition() {
               'default value' => variable_get('services_node_index_page_size', 20),
               'source' => array('param' => 'pagesize'),
             ),
+            array(
+              'name' => 'parameters_op',
+              'optional' => TRUE,
+              'type' => 'array',
+              'description' => 'Parameters operation array',
+              'default value' => array(),
+              'source' => array('param' => 'parameters_op'),
+            ),
           ),
           'access arguments' => array('access content'),
         ),
@@ -259,6 +267,8 @@ function _node_resource_retrieve($nid) {
     // cause never ending recursion in rendering.
     unset($node->uri);
   }
+  //Lets check field_permissions
+  $node = services_field_permissions_clean('view', 'node', $node);
   return $node;
 }
 
@@ -460,6 +470,9 @@ function _node_resource_delete($nid) {
  *   indicating items to retrieve.
  * @param $page_size
  *   Integer number of items to be returned.
+ * @param $parameters_op
+ *   An array containing fields and values used to build a corresponding
+ *   condition for its $paramaters value.
  * @return
  *   An array of node objects.
  *
@@ -469,13 +482,12 @@ function _node_resource_delete($nid) {
  *     - Is there an easier syntax we can define which can make the urls
  *       for index requests more straightforward?
  */
-function _node_resource_index($page, $fields, $parameters, $page_size) {
+function _node_resource_index($page, $fields, $parameters, $page_size, $parameters_op = array()) {
   $node_select = db_select('node', 't')
     ->addTag('node_access')
     ->orderBy('sticky', 'DESC')
     ->orderBy('created', 'DESC');
-
-  services_resource_build_index_query($node_select, $page, $fields, $parameters, $page_size, 'node');
+  services_resource_build_index_query($node_select, $page, $fields, $parameters, $page_size, 'node', $parameters_op);
 
   if (!user_access('administer nodes')) {
     $node_select->condition('status', 1);
@@ -604,7 +616,15 @@ function _node_resource_load_node_comments($nid, $count = 0, $start = 0) {
     $cids[] = $record->cid;
   }
 
-  return !empty($cids) ? comment_load_multiple($cids) : array();
+  !empty($cids) ? $comments = comment_load_multiple($cids) : array();
+
+  $return_comments = array();
+
+  foreach ($comments as $comment) {
+    $return_comments[] = services_field_permissions_clean('view', 'comment', $comment);
+  }
+
+  return $return_comments;
 }
 
 /**

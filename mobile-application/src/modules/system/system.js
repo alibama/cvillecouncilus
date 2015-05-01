@@ -1,3 +1,6 @@
+var _system_reload_page = null;
+var _system_reload_messages = null;
+
 /**
  * Implements hook_block_info().
  * @return {Object}
@@ -134,6 +137,11 @@ function system_menu() {
         page_callback: 'system_404_page'
       }
     };
+    items['_reload'] = {
+      title: 'Reloading...',
+      page_callback: 'system_reload_page',
+      pageshow: 'system_reload_pageshow'
+    };
     return items;
 }
 
@@ -153,6 +161,67 @@ function system_401_page(path) {
  */
 function system_404_page(path) {
   return 'Sorry, the page you requested was not found.';
+}
+
+/**
+ * The page callback for the reload page.
+ * @return {String}
+ */
+function system_reload_page() {
+  try {
+    // Set aside any messages, then return an empty page.
+    var messages = drupalgap_get_messages();
+    if (!empty(messages)) {
+      _system_reload_messages = messages.slice();
+      drupalgap_set_messages([]);
+    }
+    return '';
+  }
+  catch (error) { console.log('system_reload_page - ' + error); }
+}
+
+/**
+ * The pageshow callback for the reload page.
+ */
+function system_reload_pageshow() {
+  try {
+    // Set any messages that were set aside.
+    if (_system_reload_messages && !empty(_system_reload_messages)) {
+      for (var i = 0; i < _system_reload_messages.length; i++) {
+        drupalgap_set_message(
+          _system_reload_messages[i].message,
+          _system_reload_messages[i].type
+        );
+      }
+      _system_reload_messages = null;
+    }
+    drupalgap_loading_message_show();
+  }
+  catch (error) { console.log('system_reload_pageshow - ' + error); }
+}
+
+/**
+ * Implements hook_system_drupalgap_goto_post_process().
+ * @param {String} path
+ */
+function system_drupalgap_goto_post_process(path) {
+  try {
+
+    // To reload the "current" page, grab the path we have been requested to
+    // reload, clear out our global reference to it, then go!
+    // @see https://github.com/signalpoint/DrupalGap/issues/254
+    if (path == '_reload') {
+      if (!_system_reload_page) { return; }
+      var path = '' + _system_reload_page;
+      _system_reload_page = null;
+      drupalgap_loading_message_show();
+      drupalgap_goto(path, { reloadPage: true });
+    }
+
+  }
+  catch (error) {
+    console.log('system_drupalgap_goto_post_process - ' + error);
+  }
 }
 
 /**
@@ -313,8 +382,6 @@ function system_settings_form_submit(form, form_state) {
           variable_set(variable, value);
       });
     }
-    // @todo - a nice spot to have a drupalgap_set_message function, eh?
-    drupalgap_alert('The configuration options have been saved.');
   }
   catch (error) { console.log('system_settings_form_submit - ' + error); }
 }

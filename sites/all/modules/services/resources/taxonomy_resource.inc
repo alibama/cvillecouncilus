@@ -118,6 +118,14 @@ function _taxonomy_resource_definition() {
               'default value' => variable_get('services_taxonomy_term_index_page_size', 20),
               'source' => array('param' => 'pagesize'),
             ),
+            array(
+              'name' => 'parameters_op',
+              'optional' => TRUE,
+              'type' => 'array',
+              'description' => 'Parameters operation array',
+              'default value' => array(),
+              'source' => array('param' => 'parameters_op'),
+            ),
           ),
           'access arguments' => array('access content'),
         ),
@@ -330,7 +338,10 @@ function _taxonomy_resource_definition() {
  * @see taxonomy_get_term()
  */
 function _taxonomy_term_resource_retrieve($tid) {
-  return taxonomy_term_load($tid);
+  $term = taxonomy_term_load($tid);
+  //Lets check field_permissions
+  $term = services_field_permissions_clean('view', 'taxonomy_term', $term);
+  return $term;
 }
 
 /**
@@ -589,7 +600,9 @@ function _taxonomy_resource_delete_access($tid) {
  * @see _node_resource_index() for more notes
  **/
 function _taxonomy_term_resource_index($page, $fields, $parameters, $page_size) {
-  $taxonomy_select = db_select('taxonomy_term_data', 't')
+  $taxonomy_select = db_select('taxonomy_term_data', 't');
+  $taxonomy_select->join('taxonomy_term_hierarchy', 'tth', 't.tid = tth.tid');
+  $taxonomy_select->fields('tth')
     ->orderBy('vid', 'DESC')
     ->orderBy('weight', 'DESC')
     ->orderBy('name', 'DESC');

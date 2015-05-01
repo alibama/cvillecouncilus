@@ -231,18 +231,24 @@ function comment_services_postprocess(options, result) {
   try {
     if (options.service == 'comment' && options.resource == 'create') {
       // If we're on the node view page, inject the comment into the comment
-      // listing, then scroll the page to the newly inserted/rendered comment,
-      // then clear the form input.
+      // listing (if it is in the DOM), then scroll the page to the newly
+      // inserted/rendered comment, then clear the form input.
       var path = drupalgap_path_get();
       var router_path = drupalgap_get_menu_link_router_path(path);
       if (router_path == 'node/%') {
-        node_load(arg(1), {
+        var nid = arg(1);
+        var container_id = comments_container_id(nid);
+        var container = $('#' + container_id);
+        if (
+          typeof container.length !== 'undefined' &&
+          container.length == 0
+        ) { return; }
+        node_load(nid, {
             reset: true,
             success: function(node) {
               comment_load(result.cid, {
                   success: function(comment) {
-                    var container_id = comments_container_id(node.nid);
-                    $('#' + container_id).append(
+                    $(container).append(
                       theme('comment', { comment: comment })
                     ).trigger('create');
                     scrollToElement('#' + container_id + ' :last-child', 500);
@@ -268,12 +274,15 @@ function theme_comments(variables) {
   try {
     // Set the container id and append default attributes.
     variables.attributes.id = comments_container_id(variables.node.nid);
-    variables.attributes['class'] += 'comments ';
+    variables.attributes['class'] +=
+      'comments comments-node-' + variables.node.type;
     variables.attributes['data-role'] = 'collapsible-set';
     // Open the container.
     var html = '<div ' + drupalgap_attributes(variables.attributes) + '>';
     // Show a comments title if there are any comments.
-    if (variables.node.comment_count > 0) { html += '<h2>Comments</h2>'; }
+    if (variables.node.comment_count > 0) {
+      html += '<h2 class="comments-title">Comments</h2>';
+    }
     // If the comments are already rendered, show them.
     if (variables.comments) { html += variables.comments; }
     // Close the container and return the html.
@@ -324,7 +333,10 @@ function theme_comment(variables) {
       '</ul>' + comment.content;
     html += comment_content;
     // Add an edit link if necessary.
-    if (user_access('administer comments')) {
+    if (
+      user_access('administer comments') ||
+      (user_access('edit own comments') && comment.uid == Drupal.user.uid)
+    ) {
       html += theme('button_link', {
           text: 'Edit',
           path: 'comment/' + comment.cid + '/edit',

@@ -125,13 +125,13 @@ function hook_deviceready() {}
  */
 function hook_drupalgap_goto_preprocess(path) {
   try {
+    // Pre process the front page.
+    if (path == drupalgap.settings.front) {
+      drupalgap_alert('Preprocessing the front page!');
+    }
   }
   catch (error) {
     console.log('hook_drupalgap_goto_preprocess - ' + error);
-  }
-  // Pre process the front page.
-  if (path == drupalgap.settings.front) {
-    drupalgap_alert('Preprocessing the front page!');
   }
 }
 
@@ -191,6 +191,28 @@ function hook_entity_post_render_content(entity, entity_type, bundle) {
   catch (error) {
     console.log('hook_entity_post_render_content - ' + error);
   }
+}
+
+/**
+ * Implements hook_field_info_instance_add_to_form().
+ * Used by modules that provide custom fields to operate on a form or its
+ * elements before the form gets saved to local storage. This allows extra
+ * data be attached to the form that way things like hook_field_widget_form(),
+ * which takes place at render time, can have access to any extra data it may
+ * need.
+ * @param {String} entity_type
+ * @param {String} bundle
+ * @param {Object} form
+ * @param {Object} entity
+ * @param {Object} element
+ */
+function hook_field_info_instance_add_to_form(entity_type, bundle, form, entity, element) {
+  try {
+    // Attach a value_callback to the element so we can manually build its form
+    // state value.
+    element.value_callback = 'example_field_value_callback';
+  }
+  catch (error) { console.log('hook_field_info_instance_add_to_form - ' + error); }
 }
 
 /**
@@ -293,9 +315,20 @@ function hook_image_path_alter(src) { }
 function hook_install() {}
 
 /**
+ * Implements hook_menu()
  * This hook is used to declare menu paths for custom pages.
  */
-function hook_menu() {}
+function hook_menu() {
+  try {
+    var items = {};
+    items['hello_world'] = {
+      title: 'Hello World',
+      page_callback: 'my_module_hello_world_page'
+    };
+    return items;
+  }
+  catch (error) { console.log('hook_menu - ' + error); }
+}
 
 function hook_mvc_model() {
   var models = {};
@@ -303,6 +336,34 @@ function hook_mvc_model() {
 }
 function hook_mvc_view() {}
 function hook_mvc_controller() {}
+
+/**
+ * Implements hook_node_page_view_alter_TYPE().
+ * @param {Object} node The fully loaded node object.
+ * @param {Object} options The options object, containing the success callback.
+ */
+function hook_node_page_view_alter_TYPE(node, options) {
+  try {
+
+    // Use this hook to completely take over the content that is shown when a
+    // user views a certain content type's page within the app. Pass your
+    // content (render array or html string) to the sucess callback provided in
+    // options to have it automatically injected in the page.
+
+    var content = {};
+    content['my_markup'] = {
+      markup: '<p>Click below to see the node!</p>'
+    };
+    content['my_collapsible'] = {
+      theme: 'collapsible',
+      header: node.title,
+      content: node.content
+    };
+    options.success(content);
+
+  }
+  catch (error) { console.log('hook_node_page_view_alter_TYPE() - ' + error); }
+}
 
 /**
  * Implements hook_views_exposed_filter().

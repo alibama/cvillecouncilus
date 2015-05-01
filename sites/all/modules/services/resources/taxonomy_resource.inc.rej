@@ -1,0 +1,26 @@
+--- resources/taxonomy_resource.inc
++++ resources/taxonomy_resource.inc
+@@ -591,18 +599,21 @@
+  *   indicating items to retrieve.
+  * @param $page_size
+  *   Integer number of items to be returned.
++ * @param $parameters_op
++ *   An array containing fields and values used to build a corresponding
++ *   condition for its $paramaters value.
+  * @return
+  *   An array of term objects.
+  *
+  * @see _node_resource_index() for more notes
+  **/
+-function _taxonomy_term_resource_index($page, $fields, $parameters, $page_size) {
++function _taxonomy_term_resource_index($page, $fields, $parameters, $page_size, $parameters_op = array()) {
+   $taxonomy_select = db_select('taxonomy_term_data', 't')
+     ->orderBy('vid', 'DESC')
+     ->orderBy('weight', 'DESC')
+     ->orderBy('name', 'DESC');
+ 
+-  services_resource_build_index_query($taxonomy_select, $page, $fields, $parameters, $page_size, 'taxonomy_term');
++  services_resource_build_index_query($taxonomy_select, $page, $fields, $parameters, $page_size, 'taxonomy_term', $parameters_op);
+ 
+   $results = services_resource_execute_index_query($taxonomy_select);
+ 
