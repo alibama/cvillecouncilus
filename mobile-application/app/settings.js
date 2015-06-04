@@ -104,10 +104,11 @@ Drupal.modules.contrib['fivestar'] = {};
 //Drupal.modules.contrib['openlayers'] = {};
 //Drupal.modules.contrib['services_menu'] = {};
 
-//Drupal.modules.contrib['example'] = {};
+Drupal.modules.contrib['addressfield'] = {};
 
 /** Custom Modules - www/app/modules/custom **/
 Drupal.modules.custom['cville'] = {};
+Drupal.modules.custom['forlaura'] = {};
 //Drupal.modules.custom['mobile_notifications'] = {};
 //Drupal.modules.custom['my_module'] = {};
 
@@ -190,7 +191,7 @@ drupalgap.settings.menus['main_menu'] = {
       },
     {
      title:'Nearby Flora',
-     path:'trees',
+     path:'map',
      options:{
         attributes:{
           'data-icon':'grid'

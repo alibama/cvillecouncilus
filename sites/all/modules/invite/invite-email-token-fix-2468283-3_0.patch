@@ -1,0 +1,26 @@
+diff --git a/modules/invite_by_email/invite_by_email.module b/modules/invite_by_email/invite_by_email.module
+index bbc95b9..15ab5fd 100644
+--- a/modules/invite_by_email/invite_by_email.module
++++ b/modules/invite_by_email/invite_by_email.module
+@@ -267,8 +267,9 @@ function invite_by_email_invite_presave($invite) {
+   if ($account = user_load_by_mail($mail_address)) {
+     $invite->invitee = $account->uid;
+   }
+-  $invite->data['subject'] = $entity->field_invitation_email_subject->value();
+-  $invite->data['message'] = $entity->field_invitation_email_body->value();
++  
++  // The value of the body hasn't been set yet. Let' s go get the template!
++  $entity->field_invitation_email_body = variable_get('invite_default_mail_body', ''); 
+ 
+   $invite_by_email_settings = $invite->type_details()->data['invite_by_email'];
+ 
+@@ -280,6 +281,9 @@ function invite_by_email_invite_presave($invite) {
+     );
+     $entity->field_invitation_email_subject = token_replace(trim($entity->field_invitation_email_subject->value()), $token_data);
+     $entity->field_invitation_email_body = token_replace($entity->field_invitation_email_body->value(), $token_data);
++    
++    $invite->data['subject'] = $entity->field_invitation_email_subject->value();
++    $invite->data['message'] = $entity->field_invitation_email_body->value();
+   }
+ }
+ 
