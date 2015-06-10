@@ -56,7 +56,7 @@ drupalgap.settings.mode = 'web-app';
 drupalgap.settings.title = 'Cville, Council Us';
  
 // App Front Page
-drupalgap.settings.front = 'node/4207';
+drupalgap.settings.front = 'node/4224';
 
 // Theme
 drupalgap.settings.theme = 'easystreet3';
@@ -109,6 +109,7 @@ Drupal.modules.contrib['addressfield'] = {};
 /** Custom Modules - www/app/modules/custom **/
 Drupal.modules.custom['cville'] = {};
 Drupal.modules.custom['forlaura'] = {};
+Drupal.modules.custom['works'] = {};
 //Drupal.modules.custom['mobile_notifications'] = {};
 //Drupal.modules.custom['my_module'] = {};
 
